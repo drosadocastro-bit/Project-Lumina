@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  @keyframes glitch {
+    0% { transform: translate(0); clip-path: inset(0 0 0 0); }
+    20% { transform: translate(-1px, 1px); clip-path: inset(10% 0 30% 0); }
+    40% { transform: translate(-1px, -1px); clip-path: inset(40% 0 10% 0); }
+    60% { transform: translate(1px, 1px); clip-path: inset(20% 0 50% 0); }
+    80% { transform: translate(1px, -1px); clip-path: inset(60% 0 20% 0); }
+    100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+  }
+}
+
+@layer utilities {
+  .animate-identity-glitch {
+    animation: glitch 0.3s steps(2, end) infinite;
+    text-shadow: 1px 0 #ff00c1, -1px 0 #00fff9;
+  }
+}
