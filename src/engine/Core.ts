@@ -426,6 +426,11 @@ export class NeuralEngine {
       frequency: 1.0 + Math.random(),
       lastPulse: 0,
     });
+    
+    // Aggressive Perturbation (Observer Influence Test)
+    this.tension = Math.min(1.0, this.tension + 0.3);
+    this.dna.noise_level = Math.min(1.0, this.dna.noise_level + 0.1);
+    
     return id;
   }
 }
