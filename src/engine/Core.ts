@@ -59,6 +59,8 @@ export interface Stats {
   ghosts: GhostTrace[];
   dna: SystemDNA;
   phase: CyclePhase;
+  events: string[];
+  phaseDominance: Record<CyclePhase, number>;
 }
 
 export class NeuralEngine {
@@ -77,15 +79,23 @@ export class NeuralEngine {
 
   // Evolution Layer
   dna: SystemDNA = {
-    coherence_bias: 0.5,
-    noise_level: 0.2,
-    memory_weight: 0.5,
-    recovery_rate: 0.3,
+    coherence_bias: 0.6,
+    noise_level: 0.1,
+    memory_weight: 0.6, // Increased from 0.4 - Baseline Memory Saturation
+    recovery_rate: 0.5, // Increased from 0.3 - Hardened Recovery
     drift: 0.05
   };
   phase: CyclePhase = 'Calm';
   private tickCount: number = 0;
   private phaseTicksRemaining: number = 2000; // Frames
+  private events: string[] = [];
+  private phaseDurations: Record<CyclePhase, number> = {
+    'Calm': 0,
+    'Growth': 0,
+    'Tension': 0,
+    'Collapse': 0
+  };
+  private totalTicks: number = 0;
 
   constructor(width: number, height: number, nodeCount: number = 40) {
     this.width = width;
@@ -111,6 +121,8 @@ export class NeuralEngine {
 
   update(dt: number, time: number) {
     this.tickCount++;
+    this.totalTicks++;
+    this.phaseDurations[this.phase]++;
 
     // --- EVOLUTION MACRO-LOOP (Runs occasionally to minimize overhead) ---
     if (this.tickCount % 60 === 0) {
@@ -228,11 +240,18 @@ export class NeuralEngine {
   }
 
   private shiftPhase() {
-    const phases: CyclePhase[] = ['Calm', 'Growth', 'Tension', 'Collapse'];
-    const currentIndex = phases.indexOf(this.phase);
-    // Move to next phase, but occasionally skip or reverse
-    const nextIndex = Math.random() > 0.8 ? Math.floor(Math.random() * phases.length) : (currentIndex + 1) % phases.length;
-    this.phase = phases[nextIndex];
+    // Expansionist Bias: Aggressively favor Growth and Tension
+    const rolls = Math.random();
+    if (this.phase === 'Calm') {
+      this.phase = rolls < 0.9 ? 'Growth' : 'Tension';
+    } else if (this.phase === 'Growth') {
+      this.phase = rolls < 0.8 ? 'Tension' : 'Calm';
+    } else if (this.phase === 'Tension') {
+      this.phase = rolls < 0.3 ? 'Collapse' : 'Growth';
+    } else if (this.phase === 'Collapse') {
+      this.phase = 'Growth'; // Instant aggressive recovery
+    }
+
     this.phaseTicksRemaining = 2000 + Math.random() * 3000; // Variable duration
 
     // Phase impact on DNA
@@ -255,14 +274,14 @@ export class NeuralEngine {
       // Hyper-sync: Massive coherence spike
       this.dna.coherence_bias = 1.0;
       this.nodes.forEach(n => n.phase = this.nodes[0].phase);
-      console.log("Emergent Disruption: Hyper-Sync");
+      this.events.push("Hyper-Sync Triggered");
     } else if (roll < 0.66) {
       // Sudden fragmentation: Break 80% of edges
       this.edges.forEach((edge, key) => {
         if (Math.random() < 0.8) this.edges.delete(key);
       });
       this.dna.noise_level = 0.9;
-      console.log("Emergent Disruption: Fragmentation Spasm");
+      this.events.push("Fragmentation Spasm");
     } else {
       // Memory flood: Spawn random ghosts
       for (let i = 0; i < 15; i++) {
@@ -274,12 +293,27 @@ export class NeuralEngine {
           energy: 0.8
         });
       }
-      console.log("Emergent Disruption: Memory Flood");
+      this.events.push("Memory Flood Detected");
     }
   }
 
   // === END EVOLUTION LAYER ===
 
+
+  public getPhaseDominance(): Record<CyclePhase, number> {
+    const dominance: any = {};
+    const phases: CyclePhase[] = ['Calm', 'Growth', 'Tension', 'Collapse'];
+    phases.forEach(p => {
+      dominance[p] = this.phaseDurations[p] / (this.totalTicks || 1);
+    });
+    return dominance;
+  }
+
+  public popEvents(): string[] {
+    const e = [...this.events];
+    this.events = [];
+    return e;
+  }
 
   private analyzeInternalState() {
     // Cluster Detection (Connected Components with threshold strength)

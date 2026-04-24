@@ -21,7 +21,15 @@ export default function App() {
       recovery_rate: 0.3,
       drift: 0.05
     } as SystemDNA,
-    phase: 'Calm' as CyclePhase
+    phase: 'Calm' as CyclePhase,
+    events: [] as string[],
+    phaseDominance: {
+      'Calm': 0,
+      'Growth': 0,
+      'Tension': 0,
+      'Collapse': 0
+    } as Record<CyclePhase, number>,
+    ghostCount: 0
   });
 
   const handleStateUpdate = useCallback((newStats: typeof stats) => {

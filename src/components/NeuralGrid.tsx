@@ -11,6 +11,8 @@ interface NeuralGridProps {
     ghosts: GhostTrace[];
     dna: SystemDNA;
     phase: CyclePhase;
+    events: string[];
+    phaseDominance: Record<CyclePhase, number>;
   }) => void;
 }
 
@@ -70,7 +72,10 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
           markers: engine.markers,
           ghosts: engine.ghosts,
           dna: engine.dna,
-          phase: engine.phase
+          phase: engine.phase,
+          events: engine.popEvents(),
+          phaseDominance: engine.getPhaseDominance(),
+          ghostCount: engine.ghosts.length
         });
       }
 
