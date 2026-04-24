@@ -4,7 +4,7 @@ import { ConsciousnessMonitor } from './components/ConsciousnessMonitor';
 import { MousePointer2, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 
-import { Cluster, InternalMarker, GhostTrace } from './engine/Core';
+import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase } from './engine/Core';
 
 export default function App() {
   const [stats, setStats] = useState({ 
@@ -13,7 +13,15 @@ export default function App() {
     avgStrength: 0,
     clusters: [] as Cluster[],
     markers: [] as InternalMarker[],
-    ghosts: [] as GhostTrace[]
+    ghosts: [] as GhostTrace[],
+    dna: {
+      coherence_bias: 0.5,
+      noise_level: 0.2,
+      memory_weight: 0.5,
+      recovery_rate: 0.3,
+      drift: 0.05
+    } as SystemDNA,
+    phase: 'Calm' as CyclePhase
   });
 
   const handleStateUpdate = useCallback((newStats: typeof stats) => {

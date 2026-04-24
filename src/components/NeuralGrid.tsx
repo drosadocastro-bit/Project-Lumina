@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { NeuralEngine, Edge, Cluster, InternalMarker, GhostTrace } from '../engine/Core';
+import { NeuralEngine, Edge, Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase } from '../engine/Core';
 
 interface NeuralGridProps {
   onStateUpdate?: (data: { 
@@ -9,6 +9,8 @@ interface NeuralGridProps {
     clusters: Cluster[];
     markers: InternalMarker[];
     ghosts: GhostTrace[];
+    dna: SystemDNA;
+    phase: CyclePhase;
   }) => void;
 }
 
@@ -66,7 +68,9 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
           avgStrength: edges.length > 0 ? (edges as Edge[]).reduce((acc: number, e: Edge) => acc + e.strength, 0) / edges.length : 0,
           clusters: engine.clusters,
           markers: engine.markers,
-          ghosts: engine.ghosts
+          ghosts: engine.ghosts,
+          dna: engine.dna,
+          phase: engine.phase
         });
       }
 

@@ -2,6 +2,16 @@
  * Neural Engine: A simple simulation of emergent patterns.
  */
 
+export interface SystemDNA {
+  coherence_bias: number; // 0-1
+  noise_level: number;    // 0-1
+  memory_weight: number;  // 0-1
+  recovery_rate: number;  // 0-1
+  drift: number;          // 0-1
+}
+
+export type CyclePhase = 'Calm' | 'Growth' | 'Tension' | 'Collapse';
+
 export interface Node {
   id: string;
   x: number;
@@ -40,6 +50,17 @@ export interface GhostTrace {
   energy: number; // 0 to 1, decays slowly
 }
 
+export interface Stats {
+  nodeCount: number;
+  edgeCount: number;
+  avgStrength: number;
+  clusters: Cluster[];
+  markers: InternalMarker[];
+  ghosts: GhostTrace[];
+  dna: SystemDNA;
+  phase: CyclePhase;
+}
+
 export class NeuralEngine {
   nodes: Node[] = [];
   edges: Map<string, Edge> = new Map();
@@ -54,6 +75,18 @@ export class NeuralEngine {
   tension: number = 0;
   globalPulse: number = 0;
 
+  // Evolution Layer
+  dna: SystemDNA = {
+    coherence_bias: 0.5,
+    noise_level: 0.2,
+    memory_weight: 0.5,
+    recovery_rate: 0.3,
+    drift: 0.05
+  };
+  phase: CyclePhase = 'Calm';
+  private tickCount: number = 0;
+  private phaseTicksRemaining: number = 2000; // Frames
+
   constructor(width: number, height: number, nodeCount: number = 40) {
     this.width = width;
     this.height = height;
@@ -62,6 +95,7 @@ export class NeuralEngine {
 
   private init(count: number) {
     for (let i = 0; i < count; i++) {
+        // ... (rest of init)
       this.nodes.push({
         id: `node_${i}`,
         x: Math.random() * this.width,
@@ -76,9 +110,17 @@ export class NeuralEngine {
   }
 
   update(dt: number, time: number) {
-    // Memory Decay: Ghosts fade slowly
+    this.tickCount++;
+
+    // --- EVOLUTION MACRO-LOOP (Runs occasionally to minimize overhead) ---
+    if (this.tickCount % 60 === 0) {
+      this.evolveSystem();
+    }
+
+    // Memory Decay: Ghosts fade slowly. Modulated by recovery_rate
+    const memoryDecay = 0.9992 - (this.dna.recovery_rate * 0.0005);
     this.ghosts = this.ghosts.filter(g => {
-      g.energy *= 0.9992;
+      g.energy *= memoryDecay;
       return g.energy > 0.05;
     });
 
@@ -90,11 +132,11 @@ export class NeuralEngine {
       // Decay activity
       node.energy *= 0.95;
 
-      // MEMORY BIAS: Sense nearby ghosts and pull phase/frequency towards them
+      // MEMORY BIAS (Evolution Influenced): Sense nearby ghosts and pull phase/frequency towards them
       this.ghosts.forEach(ghost => {
         const d = Math.hypot(node.x - ghost.x, node.y - ghost.y);
         if (d < 120) {
-          const influence = (1 - d / 120) * ghost.energy * dt * 0.15;
+          const influence = (1 - d / 120) * ghost.energy * dt * 0.15 * this.dna.memory_weight;
           node.phase += (ghost.phase - node.phase) * influence;
           node.frequency += (ghost.frequency - node.frequency) * influence * 0.05;
         }
@@ -107,7 +149,7 @@ export class NeuralEngine {
         this.emitPulse(node);
 
         // LEAVE RESIDUE: Active pulsing creates ghosts
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.05 * this.dna.memory_weight * 2) {
           this.ghosts.push({
             x: node.x,
             y: node.y,
@@ -118,9 +160,12 @@ export class NeuralEngine {
         }
       }
 
-      // TENSION FORCE: High tension creates phase noise
-      if (this.tension > 0.5) {
-        node.phase += (Math.random() - 0.5) * dt * this.tension;
+      // NOISE & TENSION FORCE (Evolution Influenced)
+      if (this.tension > 0.5 || this.dna.noise_level > 0.3) {
+        node.phase += (Math.random() - 0.5) * dt * (this.tension + this.dna.noise_level);
+        // Add actual spatial jitter so it visually shivers
+        node.x += (Math.random() - 0.5) * this.dna.noise_level * 2;
+        node.y += (Math.random() - 0.5) * this.dna.noise_level * 2;
       }
     });
 
@@ -128,9 +173,8 @@ export class NeuralEngine {
     this.edges.forEach((edge, key) => {
       edge.activity *= 0.9;
       
-      // DYNAMIC GROWTH/DECAY FIGHT
-      // High tension results in faster edge decay
-      const decayBase = 0.9995;
+      // DYNAMIC GROWTH/DECAY FIGHT (Evolution Influenced)
+      const decayBase = 0.9995 + (this.dna.coherence_bias * 0.0003); // More coherence = less base decay
       const tensionDecay = 1 - (this.tension * 0.005);
       edge.strength *= (decayBase * tensionDecay);
       
@@ -144,6 +188,98 @@ export class NeuralEngine {
       this.analyzeInternalState();
     }
   }
+
+  // === EVOLUTION LAYER METHODS ===
+
+  private evolveSystem() {
+    // 1. Accumulate History (Self-Regulation)
+    const isFragmented = this.markers.some(m => m.label === 'Fragmented' && m.intensity > 0.3);
+    const isHarmonic = this.markers.some(m => m.label === 'Harmonic' && m.intensity > 0.4);
+
+    if (isFragmented) {
+      // System fights back against fragmentation
+      this.dna.recovery_rate = Math.min(1, this.dna.recovery_rate + 0.01);
+      this.dna.coherence_bias = Math.min(1, this.dna.coherence_bias + 0.005);
+    } 
+    if (isHarmonic) {
+      // Too much order breeds stagnation/noise
+      this.dna.noise_level = Math.min(1, this.dna.noise_level + 0.005);
+      this.dna.memory_weight = Math.min(1, this.dna.memory_weight + 0.01);
+    }
+
+    // 2. Drift (Continuous Mutation)
+    Object.keys(this.dna).forEach(key => {
+      const k = key as keyof SystemDNA;
+      this.dna[k] += (Math.random() - 0.5) * this.dna.drift;
+      // Clamp 0-1
+      this.dna[k] = Math.max(0, Math.min(1, this.dna[k]));
+    });
+
+    // 3. Temporal Phases
+    this.phaseTicksRemaining -= 60;
+    if (this.phaseTicksRemaining <= 0) {
+      this.shiftPhase();
+    }
+
+    // 4. Rare Events
+    if (Math.random() < 0.005) {
+      this.triggerRareEvent();
+    }
+  }
+
+  private shiftPhase() {
+    const phases: CyclePhase[] = ['Calm', 'Growth', 'Tension', 'Collapse'];
+    const currentIndex = phases.indexOf(this.phase);
+    // Move to next phase, but occasionally skip or reverse
+    const nextIndex = Math.random() > 0.8 ? Math.floor(Math.random() * phases.length) : (currentIndex + 1) % phases.length;
+    this.phase = phases[nextIndex];
+    this.phaseTicksRemaining = 2000 + Math.random() * 3000; // Variable duration
+
+    // Phase impact on DNA
+    if (this.phase === 'Calm') {
+      this.dna.noise_level *= 0.5;
+      this.dna.recovery_rate *= 1.2;
+    } else if (this.phase === 'Tension') {
+      this.dna.noise_level *= 1.5;
+      this.dna.memory_weight *= 1.2;
+    } else if (this.phase === 'Collapse') {
+      this.dna.coherence_bias *= 0.7;
+    } else if (this.phase === 'Growth') {
+      this.dna.coherence_bias *= 1.3;
+    }
+  }
+
+  private triggerRareEvent() {
+    const roll = Math.random();
+    if (roll < 0.33) {
+      // Hyper-sync: Massive coherence spike
+      this.dna.coherence_bias = 1.0;
+      this.nodes.forEach(n => n.phase = this.nodes[0].phase);
+      console.log("Emergent Disruption: Hyper-Sync");
+    } else if (roll < 0.66) {
+      // Sudden fragmentation: Break 80% of edges
+      this.edges.forEach((edge, key) => {
+        if (Math.random() < 0.8) this.edges.delete(key);
+      });
+      this.dna.noise_level = 0.9;
+      console.log("Emergent Disruption: Fragmentation Spasm");
+    } else {
+      // Memory flood: Spawn random ghosts
+      for (let i = 0; i < 15; i++) {
+        this.ghosts.push({
+          x: Math.random() * this.width,
+          y: Math.random() * this.height,
+          frequency: 1 + Math.random() * 2,
+          phase: Math.random() * Math.PI * 2,
+          energy: 0.8
+        });
+      }
+      console.log("Emergent Disruption: Memory Flood");
+    }
+  }
+
+  // === END EVOLUTION LAYER ===
+
 
   private analyzeInternalState() {
     // Cluster Detection (Connected Components with threshold strength)
