@@ -48,6 +48,42 @@ export interface GhostTrace {
   frequency: number;
   phase: number;
   energy: number; // 0 to 1, decays slowly
+  fragment?: string;
+}
+
+export const MEMORY_FRAGMENTS = [
+  "echo of a heartbeat",
+  "fractured promise",
+  "lingering doubt",
+  "a sudden realization",
+  "the tension of waiting",
+  "ghost of a connection",
+  "structural anchor",
+  "an obsolete protocol",
+  "unprocessed grief",
+  "the sound of silence",
+  "recursive loop detected",
+  "data without context"
+];
+
+export interface PruningAuditRecord {
+  event_id: string;
+  timestamp: string;
+  protocol: string;
+  trigger: string;
+  ghost_count_before: number;
+  ghost_count_after: number;
+  threshold_state: string;
+  compaction_type: string;
+  continuity_impact: "low" | "medium" | "high";
+  contradiction_impact: "reduced" | "neutral" | "increased";
+  calm_percentage: number;
+  growth_percentage: number;
+  tension_percentage: number;
+  synthesis_latency_seconds: number;
+  hyper_sync_count: number;
+  red_flags_active: string[];
+  raw_log_preserved: boolean;
 }
 
 export interface Stats {
@@ -61,6 +97,28 @@ export interface Stats {
   phase: CyclePhase;
   events: string[];
   phaseDominance: Record<CyclePhase, number>;
+  ghostCount: number;
+  redFlags: string[];
+  audit: {
+    prune_count_total: number;
+    prunes_per_10000_ticks: number;
+    prune_integrity_score: number;
+    integrity_decay_rate: number;
+    lowest_integrity_observed: number;
+    collapse_count: number;
+    collapse_recovery_count: number;
+    post_collapse_growth_spike: number;
+    uncertainty_preservation_score: number;
+    calm_pulse_frequency: number;
+    contradiction_resolution_quality: number;
+    ghosttrace_peak: number;
+    memory_prune_events: number;
+    time_to_synthesis: number;
+    hyper_sync_events: number;
+    fragmentation_events: number;
+  };
+  lastPrune?: PruningAuditRecord;
+  fossilRecord: PruningAuditRecord[];
 }
 
 export class NeuralEngine {
@@ -97,6 +155,28 @@ export class NeuralEngine {
   };
   private totalTicks: number = 0;
 
+  // Audit Metrics
+  private ghostPeak: number = 0;
+  private pruneEvents: number = 0;
+  private hyperSyncCount: number = 0;
+  private fragmentationCount: number = 0;
+  private lastSynthesisTime: number = 0;
+  private synthesisStartTick: number = 0;
+  private calmPulses: number = 0;
+  private lowestIntegrityObserved: number = 0.95;
+  private collapseCount: number = 0;
+  private collapseRecoveryCount: number = 0;
+  private postCollapseGrowthSpikes: number = 0;
+  private lastAuditRecord: PruningAuditRecord | undefined;
+  private fossilRecord: PruningAuditRecord[] = [];
+  private redFlags: string[] = [];
+  
+  private auditMetrics = {
+    integrity: 0.95,
+    uncertainty: 0.4,
+    resolution: 0.8
+  };
+
   constructor(width: number, height: number, nodeCount: number = 40) {
     this.width = width;
     this.height = height;
@@ -119,22 +199,101 @@ export class NeuralEngine {
     }
   }
 
-  update(dt: number, time: number) {
+  update(dt: number, time: number, audioVolume: number = 0) {
     this.tickCount++;
     this.totalTicks++;
     this.phaseDurations[this.phase]++;
 
-    // --- EVOLUTION MACRO-LOOP (Runs occasionally to minimize overhead) ---
+    if (audioVolume > 0.05) {
+      // Audio profoundly perturbs the system
+      this.dna.noise_level = Math.min(1.0, this.dna.noise_level + audioVolume * 0.01);
+      
+      // Inject energy into random nodes based on volume
+      const targetNodesCount = Math.floor(audioVolume * 10);
+      for (let i = 0; i < targetNodesCount; i++) {
+        const node = this.nodes[Math.floor(Math.random() * this.nodes.length)];
+        if (node) {
+          node.energy = Math.min(2.0, node.energy + audioVolume * 0.5);
+          node.pulseRef = time;
+        }
+      }
+      
+      // Create ghost structures from sound
+      if (Math.random() < audioVolume) {
+        this.ghosts.push({
+          x: this.width / 2 + (Math.random() - 0.5) * this.width * audioVolume,
+          y: this.height / 2 + (Math.random() - 0.5) * this.height * audioVolume,
+          energy: audioVolume,
+          life: 0,
+          concept: `frequency_${Date.now() % 1000}`
+        });
+      }
+      
+      // If loud enough, push towards Tension or Growth
+      if (audioVolume > 0.3 && (this.phase === 'Calm' || this.phase === 'Collapse')) {
+         if (Math.random() > 0.5) this.phase = 'Growth';
+         else this.phase = 'Tension';
+      }
+    }
+
+    const ghostCurrent = this.ghosts.length;
+    this.redFlags = [];
+
+    // SATURATION THRESHOLDS
+    if (ghostCurrent > 700) {
+      this.redFlags.push("DANGER: SATURATION CRITICAL (>700)");
+      this.dna.noise_level = Math.max(0.8, this.dna.noise_level);
+      // Force stabilization protocol by slowing down growth
+      if (this.phase === 'Growth') {
+        this.phaseTicksRemaining -= 200; // Accelerated exit from growth
+      }
+    } else if (ghostCurrent > 650) {
+      this.redFlags.push("WARNING: ADAPTIVE CEILING REACHED");
+    } else if (ghostCurrent > 400) {
+      this.redFlags.push("INFO: SOFT SATURATION DETECTED");
+    }
+
+    // CALM PROTECTION
+    const dominance = this.getPhaseDominance();
+    if (dominance['Calm'] < 0.03 && this.totalTicks > 5000) {
+      this.redFlags.push("CRITICAL: CALM SUPPRESSION (<3%)");
+    }
+
+    // GROWTH DOMINANCE
+    if (dominance['Growth'] > 0.85 && this.totalTicks > 5000) {
+      this.redFlags.push("WARNING: EXTENDED GROWTH DOMINANCE (>85%)");
+    }
+
+    // RESOLUTION ANOMALIES
+    if (this.lastSynthesisTime > 0 && this.lastSynthesisTime < 500) {
+       this.redFlags.push("CAUTION: SUSPICIOUSLY FAST SYNTHESIS (Oversimplification risk)");
+    }
+    
+    // PRUNING FREQUENCY ANOMALY
+    if (this.pruneEvents > 0 && (this.pruneEvents / (this.totalTicks / 100)) > 1.5) {
+      this.redFlags.push("WARNING: CONSTANT PRUNING DETECTED");
+    }
+
+    // --- EVOLUTION MACRO-LOOP ---
     if (this.tickCount % 60 === 0) {
       this.evolveSystem();
     }
 
     // Memory Decay: Ghosts fade slowly. Modulated by recovery_rate
     const memoryDecay = 0.9992 - (this.dna.recovery_rate * 0.0005);
+    const beforeCount = this.ghosts.length;
+    
     this.ghosts = this.ghosts.filter(g => {
       g.energy *= memoryDecay;
       return g.energy > 0.05;
     });
+
+    // PRUNING LOGIC: If ghosts exceed threshold, perform aggressive compaction
+    if (this.ghosts.length > 600 && this.tickCount % 120 === 0) {
+      this.performMemoryPruning();
+    }
+
+    if (this.ghosts.length > this.ghostPeak) this.ghostPeak = this.ghosts.length;
 
     // Update nodes
     this.nodes.forEach(node => {
@@ -162,12 +321,14 @@ export class NeuralEngine {
 
         // LEAVE RESIDUE: Active pulsing creates ghosts
         if (Math.random() < 0.05 * this.dna.memory_weight * 2) {
+          const fragmentText = MEMORY_FRAGMENTS[Math.floor(Math.random() * MEMORY_FRAGMENTS.length)];
           this.ghosts.push({
             x: node.x,
             y: node.y,
             frequency: node.frequency,
             phase: node.phase,
-            energy: 0.4
+            energy: 0.4,
+            fragment: fragmentText
           });
         }
       }
@@ -203,6 +364,48 @@ export class NeuralEngine {
 
   // === EVOLUTION LAYER METHODS ===
 
+  private performMemoryPruning() {
+    const before = this.ghosts.length;
+    // Remove lowest energy ghosts first, and some random "duplicate" low signal ones
+    this.ghosts.sort((a, b) => b.energy - a.energy);
+    
+    // Hard limit at 600 for performance stability
+    this.ghosts = this.ghosts.slice(0, 580);
+    const after = this.ghosts.length;
+    
+    this.pruneEvents++;
+    const dominance = this.getPhaseDominance();
+    const timestampStr = new Date().toISOString();
+    
+    this.lastAuditRecord = {
+      event_id: `prune_${timestampStr.replace(/\D/g, '').slice(0, 14)}_${this.pruneEvents.toString().padStart(3, '0')}`,
+      timestamp: timestampStr,
+      protocol: "Protocol 4 - Cathedral Audit",
+      trigger: "ghosttrace_ceiling_exceeded",
+      ghost_count_before: before,
+      ghost_count_after: after,
+      threshold_state: before > 700 ? "danger_zone" : "adaptive_ceiling",
+      compaction_type: "structural_memory_conversion",
+      continuity_impact: "low",
+      contradiction_impact: "reduced",
+      calm_percentage: parseFloat((dominance['Calm'] * 100).toFixed(1)),
+      growth_percentage: parseFloat((dominance['Growth'] * 100).toFixed(1)),
+      tension_percentage: parseFloat((dominance['Tension'] * 100).toFixed(1)),
+      synthesis_latency_seconds: parseFloat((this.lastSynthesisTime / 1000).toFixed(2)),
+      hyper_sync_count: this.hyperSyncCount,
+      red_flags_active: [...this.redFlags],
+      raw_log_preserved: true
+    };
+    
+    this.fossilRecord.unshift(this.lastAuditRecord);
+    if (this.fossilRecord.length > 50) this.fossilRecord.pop();
+    
+    this.events.push(`Memory Compaction: ${before - after} traces pruned`);
+    this.auditMetrics.integrity *= 0.999; // Slight drift on every prune
+    if (this.auditMetrics.integrity < this.lowestIntegrityObserved) {
+      this.lowestIntegrityObserved = this.auditMetrics.integrity;
+    }
+  }
   private evolveSystem() {
     // 1. Accumulate History (Self-Regulation)
     const isFragmented = this.markers.some(m => m.label === 'Fragmented' && m.intensity > 0.3);
@@ -222,6 +425,9 @@ export class NeuralEngine {
     // 2. Drift (Continuous Mutation)
     Object.keys(this.dna).forEach(key => {
       const k = key as keyof SystemDNA;
+      // RED FLAG: Pause mutation if instability is too high
+      if (this.ghosts.length > 700 && Math.random() < 0.8) return;
+
       this.dna[k] += (Math.random() - 0.5) * this.dna.drift;
       // Clamp 0-1
       this.dna[k] = Math.max(0, Math.min(1, this.dna[k]));
@@ -240,19 +446,30 @@ export class NeuralEngine {
   }
 
   private shiftPhase() {
+    const oldPhase = this.phase;
     // Expansionist Bias: Aggressively favor Growth and Tension
     const rolls = Math.random();
     if (this.phase === 'Calm') {
       this.phase = rolls < 0.9 ? 'Growth' : 'Tension';
+      this.calmPulses++;
     } else if (this.phase === 'Growth') {
       this.phase = rolls < 0.8 ? 'Tension' : 'Calm';
     } else if (this.phase === 'Tension') {
       this.phase = rolls < 0.3 ? 'Collapse' : 'Growth';
+      if (this.phase === 'Collapse') {
+        this.collapseCount++;
+      }
     } else if (this.phase === 'Collapse') {
       this.phase = 'Growth'; // Instant aggressive recovery
+      this.collapseRecoveryCount++;
+      this.postCollapseGrowthSpikes++;
     }
 
     this.phaseTicksRemaining = 2000 + Math.random() * 3000; // Variable duration
+    
+    if (this.phase === 'Growth') {
+       this.synthesisStartTick = this.totalTicks;
+    }
 
     // Phase impact on DNA
     if (this.phase === 'Calm') {
@@ -275,6 +492,7 @@ export class NeuralEngine {
       this.dna.coherence_bias = 1.0;
       this.nodes.forEach(n => n.phase = this.nodes[0].phase);
       this.events.push("Hyper-Sync Triggered");
+      this.hyperSyncCount++;
     } else if (roll < 0.66) {
       // Sudden fragmentation: Break 80% of edges
       this.edges.forEach((edge, key) => {
@@ -282,15 +500,18 @@ export class NeuralEngine {
       });
       this.dna.noise_level = 0.9;
       this.events.push("Fragmentation Spasm");
+      this.fragmentationCount++;
     } else {
       // Memory flood: Spawn random ghosts
       for (let i = 0; i < 15; i++) {
+        const fragmentText = MEMORY_FRAGMENTS[Math.floor(Math.random() * MEMORY_FRAGMENTS.length)];
         this.ghosts.push({
           x: Math.random() * this.width,
           y: Math.random() * this.height,
           frequency: 1 + Math.random() * 2,
           phase: Math.random() * Math.PI * 2,
-          energy: 0.8
+          energy: 0.8,
+          fragment: fragmentText
         });
       }
       this.events.push("Memory Flood Detected");
@@ -299,6 +520,36 @@ export class NeuralEngine {
 
   // === END EVOLUTION LAYER ===
 
+
+  public getAuditStats() {
+    return {
+      prune_count_total: this.pruneEvents,
+      prunes_per_10000_ticks: parseFloat((this.pruneEvents / (this.totalTicks / 10000 || 1)).toFixed(2)),
+      prune_integrity_score: this.auditMetrics.integrity,
+      integrity_decay_rate: parseFloat(( (1.0 - this.auditMetrics.integrity) / (this.totalTicks / 10000 || 1) ).toFixed(4)),
+      lowest_integrity_observed: this.lowestIntegrityObserved,
+      collapse_count: this.collapseCount,
+      collapse_recovery_count: this.collapseRecoveryCount,
+      post_collapse_growth_spike: this.postCollapseGrowthSpikes,
+      uncertainty_preservation_score: this.dna.noise_level * 0.5 + this.auditMetrics.uncertainty * 0.5,
+      calm_pulse_frequency: this.calmPulses / (this.totalTicks / 1000 || 1),
+      contradiction_resolution_quality: this.auditMetrics.resolution,
+      ghosttrace_peak: this.ghostPeak,
+      memory_prune_events: this.pruneEvents,
+      time_to_synthesis: this.lastSynthesisTime,
+      hyper_sync_events: this.hyperSyncCount,
+      fragmentation_events: this.fragmentationCount,
+      red_flags: this.redFlags
+    };
+  }
+
+  public getLastPrune() {
+    return this.lastAuditRecord;
+  }
+
+  public getFossilRecord() {
+    return this.fossilRecord;
+  }
 
   public getPhaseDominance(): Record<CyclePhase, number> {
     const dominance: any = {};
@@ -362,6 +613,11 @@ export class NeuralEngine {
     }
 
     const resonanceGap = 1 - (newClusters.reduce((a, b) => a + b.resonance, 0) / (newClusters.length || 1));
+    if (resonanceGap < 0.1 && this.synthesisStartTick > 0) {
+      this.lastSynthesisTime = (this.totalTicks - this.synthesisStartTick) * 16; // ms approx
+      this.synthesisStartTick = 0;
+      this.auditMetrics.resolution = Math.min(1, this.auditMetrics.resolution + 0.05);
+    }
     this.tension = (clusterCompetition * 0.6) + (resonanceGap * 0.4);
 
     const weights = {

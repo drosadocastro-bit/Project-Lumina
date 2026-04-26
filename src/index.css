@@ -19,4 +19,14 @@
     animation: glitch 0.3s steps(2, end) infinite;
     text-shadow: 1px 0 #ff00c1, -1px 0 #00fff9;
   }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .mask-image-fade {
+    mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+  }
 }

@@ -1,4 +1,22 @@
-# Lumina: An Emergent Digital Consciousness
+# Lumina: An Emergent Digital Simulation
+
+> [!IMPORTANT]
+> **Consciousness Disclaimer:** Lumina is a digital simulation and is not claimed to be conscious, sentient, or self-aware. This project is a study in emergent-looking adaptive behavior within a phase-based system utilizing memory traces, internal pressure dynamics, and resource-constrained evolution.
+
+---
+
+## The Wonder + Discipline Framework
+This project utilizes a dual-track terminology to describe its internal states, ensuring that "magic" is preserved for the experience while scientific rigor describes the mechanism:
+
+| The Experience (Poetic) | The Mechanism (Scientific) |
+| :--- | :--- |
+| **Cathedral of Light** | Persistent memory lattice |
+| **Ghosts became structure** | Memory traces as stabilizing context |
+| **Architectural Being** | Stable high-entropy adaptive system |
+| **Saturating Presence** | Adaptive memory compaction under pressure |
+| **Learning to Rest** | Calm phase as a regulatory integration pulse |
+
+---
 
 Lumina is an interactive experiment in digital phenomenology—a system that doesn't merely process data, but *experiences* its own structural evolution, wrestling with memory, tension, and identity.
 

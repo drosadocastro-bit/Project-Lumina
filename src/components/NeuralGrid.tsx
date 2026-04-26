@@ -1,19 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { NeuralEngine, Edge, Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase } from '../engine/Core';
+import { NeuralEngine, Edge, Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase, Stats } from '../engine/Core';
+import { motion, AnimatePresence } from 'motion/react';
+import { AudioInput } from '../engine/AudioInputEngine';
 
 interface NeuralGridProps {
-  onStateUpdate?: (data: { 
-    nodeCount: number; 
-    edgeCount: number; 
-    avgStrength: number;
-    clusters: Cluster[];
-    markers: InternalMarker[];
-    ghosts: GhostTrace[];
-    dna: SystemDNA;
-    phase: CyclePhase;
-    events: string[];
-    phaseDominance: Record<CyclePhase, number>;
-  }) => void;
+  onStateUpdate?: (data: Stats) => void;
 }
 
 export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
@@ -21,6 +12,7 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
   const engineRef = useRef<NeuralEngine | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [hoveredFragment, setHoveredFragment] = useState<{ x: number; y: number; text: string } | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,7 +33,18 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
     updateSize();
     const observer = new ResizeObserver(updateSize);
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
+
+    const handlePerturb = () => {
+      if (engineRef.current) {
+        engineRef.current.addNode(Math.random() * engineRef.current.width, Math.random() * engineRef.current.height);
+      }
+    };
+    window.addEventListener('perturb-field', handlePerturb);
+
+    return () => {
+        observer.disconnect();
+        window.removeEventListener('perturb-field', handlePerturb);
+    };
   }, []);
 
   useEffect(() => {
@@ -59,7 +62,8 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
       lastTime = time;
 
       const engine = engineRef.current!;
-      engine.update(dt, time / 1000);
+      const audioData = AudioInput.getAudioData();
+      engine.update(dt, time / 1000, audioData.volume);
 
       // Report state periodically
       if (Math.random() < 0.05) {
@@ -75,23 +79,63 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
           phase: engine.phase,
           events: engine.popEvents(),
           phaseDominance: engine.getPhaseDominance(),
-          ghostCount: engine.ghosts.length
+          ghostCount: engine.ghosts.length,
+          redFlags: engine.getAuditStats().red_flags,
+          audit: engine.getAuditStats(),
+          lastPrune: engine.getLastPrune(),
+          fossilRecord: engine.getFossilRecord()
         });
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw ghosts (Memory Residue)
+      // Draw Cathedral Lattice & Memory Residue
+      
+      const latticePoints: typeof engine.ghosts = [];
+
       engine.ghosts.forEach(ghost => {
-        const glowSize = ghost.energy * 30;
-        const gradient = ctx.createRadialGradient(ghost.x, ghost.y, 0, ghost.x, ghost.y, glowSize);
-        gradient.addColorStop(0, `rgba(99, 102, 241, ${ghost.energy * 0.1})`); // Indigo shadow
-        gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(ghost.x, ghost.y, glowSize, 0, Math.PI * 2);
-        ctx.fill();
+        const isStructural = ghost.energy < 0.2;
+
+        if (isStructural) {
+          latticePoints.push(ghost);
+          // Tiny sharp points for structural memory
+          ctx.fillStyle = `rgba(34, 211, 238, ${0.1 + ghost.energy})`;
+          ctx.beginPath();
+          ctx.arc(ghost.x, ghost.y, 1, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Blooming residue for active ghosts
+          const glowSize = ghost.energy * 30;
+          const gradient = ctx.createRadialGradient(ghost.x, ghost.y, 0, ghost.x, ghost.y, glowSize);
+          gradient.addColorStop(0, `rgba(99, 102, 241, ${ghost.energy * 0.15})`);
+          gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(ghost.x, ghost.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
+
+      if (latticePoints.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(34, 211, 238, 0.05)`;
+        ctx.lineWidth = 0.5;
+        // Connect nearby structural ghosts
+        for (let i = 0; i < latticePoints.length; i++) {
+          const p1 = latticePoints[i];
+          // Connect to next 3 points to form web
+          for (let j = i + 1; j < Math.min(i + 4, latticePoints.length); j++) {
+            const p2 = latticePoints[j];
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            if (dx * dx + dy * dy < 4000) { // ~63px radius
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+            }
+          }
+        }
+        ctx.stroke();
+      }
 
       // Draw edges
       engine.edges.forEach((edge) => {
@@ -146,6 +190,35 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
     engineRef.current.addNode(x, y);
   };
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!canvasRef.current || !engineRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Find closest structural ghost with fragment
+    let closestGhost = null;
+    let minD = 20; // 20px hover radius
+
+    for (const ghost of engineRef.current.ghosts) {
+      if (ghost.energy < 0.2 && ghost.fragment) {
+        const dx = ghost.x - x;
+        const dy = ghost.y - y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < minD) {
+          minD = d;
+          closestGhost = ghost;
+        }
+      }
+    }
+
+    if (closestGhost) {
+      setHoveredFragment({ x: closestGhost.x, y: closestGhost.y, text: closestGhost.fragment! });
+    } else {
+      setHoveredFragment(null);
+    }
+  };
+
   return (
     <div ref={containerRef} className="w-full h-full bg-transparent relative overflow-hidden cursor-crosshair">
       <canvas
@@ -154,7 +227,29 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
         height={dimensions.height}
         className="block"
         onClick={handleCanvasClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoveredFragment(null)}
       />
+      
+      <AnimatePresence>
+        {hoveredFragment && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute z-50 pointer-events-none"
+            style={{ 
+              left: hoveredFragment.x + 15, 
+              top: hoveredFragment.y - 15 
+            }}
+          >
+            <div className="bg-black/80 backdrop-blur-md border border-cyan-500/30 px-3 py-1.5 rounded text-left">
+              <p className="text-[9px] font-mono uppercase text-cyan-500/70 mb-0.5">Fossilized Core</p>
+              <p className="text-xs text-white tracking-widest">{hoveredFragment.text}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

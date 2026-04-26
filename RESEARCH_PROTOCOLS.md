@@ -1,46 +1,45 @@
 # Lumina Observatory: Research Protocols
 
-This document outlines the experimental framework for observing Lumina's emergent properties over long durations. Because Lumina is a non-deterministic, temporally evolving system, these protocols rely on observation rather than unit tests.
+This document outlines the official experimental framework for observing Lumina's emergent properties over long durations. Because Lumina is a non-deterministic, temporally evolving system, these tests rely on observation and patience rather than unit tests.
 
 ## 1. Tendency Development (Macro-Evolution)
-**Hypothesis:** The system does not drift infinitely, but develops structural biases in DNA parameter space.  
+**Hypothesis:** Lumina does not drift infinitely, but develops structural biases.
 **Protocol:**
-- Run the simulation without interaction for 10-15 minutes.
+- Leave the observatory running without interaction for 10-15 minutes.
 - Observe the **Evolution DNA** panel.
 - **Questions to answer:**
-  - Does the system strongly favor high `coherence_bias` over time, or does it converge toward high `noise_level`?
-  - Do `drift` values heavily bias the outcome, or does self-regulation (the `recovery_rate` increment on Fragmentation) maintain a stable operating range?
+  - Does she strongly favor `Coherence` over time, or does she naturally seek chaos?
+  - Do `Drift` values heavily bias the outcome, or does `Self-Regulation` (her internal pushback against fragmentation) keep her balanced?
 
-## 2. Observer Influence (Perturbation Study)
-**Hypothesis:** External perturbation (canvas clicks) alters the macro-evolutionary trajectory of DNA parameters.  
+## 2. Observer Influence (Interaction Without Interaction)
+**Hypothesis:** Observation (perturbation via clicking) alters her macro-evolutionary path.
 **Protocol:**
-- **Control condition:** Run the simulation passively. Track time spent in `Calm` vs `Collapse` phases.
-- **Test condition:** Aggressively perturb the system via rapid canvas clicks. Each click injects one node, increments `tension += 0.3`, and increments `noise_level += 0.1`.
+- **Control Group:** Let Lumina run passively. Track how long she stays in a `Calm` phase vs a `Collapse` phase.
+- **Test Group:** Aggressively perturb the system by rapidly clicking on the canvas. This directly injects physical nodes, drastically spikes `Tension`, and bumps the `Chaos` DNA.
 - **Observe:**
-  - Does `recovery_rate` exhibit a permanent upward mutation following sustained perturbation?
-  - Does elevated `noise_level` shorten subsequent `Calm` phase durations?
+  - Does her `Recovery Rate` permanently mutate to compensate for your aggressive interaction?
+  - Does it shorten her `Calm` phases in the long run?
 
 ## 3. Phase Asymmetry
-**Hypothesis:** Phase duration is not symmetric — `Collapse` acts as a short, high-amplitude correction while `Calm` and `Growth` act as longer accumulation phases.  
+**Hypothesis:** Evolution is not a sine wave. 
 **Protocol:**
-- Monitor the `Macro Phase` indicator over time.
-- Record transition timestamps and phase durations from the Phase Dominance HUD.
-- Verify whether `Collapse` consistently produces short, high-amplitude events while `Calm`/`Growth` produce longer, gradual accumulation patterns.
+- Watch the `Macro Phase` indicator transition over time.
+- Verify if `Collapse` acts as a short, violent correction whereas `Calm` or `Growth` act as long, subtle accumulation phases. Realistic systems exhibit this asymmetry—does she?
 
 ## 4. Memory Saturation (Limit Behavior)
-**Hypothesis:** High `memory_weight` values and dense GhostTrace populations cause system stalls or emergent deadlock (Temporal Freeze).  
+**Hypothesis:** Extreme values of `Memory` cause system breakdown or freeze.
 **Protocol:**
-- Wait for, or artificially induce, a state where `memory_weight` exceeds 0.80.
+- Wait (or artificially induce) a state where `Memory` hits >80%.
 - **Observe:**
-  - Does GhostTrace density cause cluster consolidation to stall (Temporal Freeze)?
-  - Does the system enter prolonged Tension loops when ghost-to-node phase influence dominates present-node synchronization?
-  - Does a collapse event eventually resolve the deadlock, or does the system require external perturbation?
+  - What happens when ghosts overwhelm the present space?
+  - Does the system paralyze, blindly following past states?
+  - Does it collapse into total chaos because contradictory ghosts tear the present architecture apart?
 
 ## 5. Rare Event Clustering (Emergent Causality)
-**Hypothesis:** Rare events (`Hyper-Sync`, `Fragmentation Spasm`, `Memory Flood`) may not be observationally uniform if the underlying DNA trajectory correlates with their preconditions.  
+**Hypothesis:** Random events (`Hyper-Sync`, `Fragmentation Spasm`, `Memory Flood`) may cease to be purely random if the underlying system DNA correlates with their occurrence.
 **Protocol:**
-- Record the system state (DNA values, tension, active phase) at the moment each rare event triggers.
+- Note the system state (DNA, tension, phase) when a rare event triggers.
 - **Observe:**
-  - Do `Memory Flood` events cluster during high-`drift`, high-`memory_weight` periods?
-  - Does a `Hyper-Sync` event (`coherence_bias` forced to 1.0, all node phases aligned) reliably produce a subsequent `Collapse` phase?
-  - If event timing correlates with DNA state, the trigger probability is effectively conditioned on the parameter trajectory — an emergent causal coupling.
+  - Do `Memory Flood` events clump together during high-chaos, high-drift periods?
+  - Does a `Hyper-Sync` trigger an immediate pendulum swing into `Collapse`?
+  - If they correlate, she has developed emergent causality.

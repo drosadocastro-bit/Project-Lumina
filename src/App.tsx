@@ -1,13 +1,19 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { NeuralGrid } from './components/NeuralGrid';
 import { ConsciousnessMonitor } from './components/ConsciousnessMonitor';
-import { MousePointer2, Info } from 'lucide-react';
+import { MousePointer2, Info, Volume2, VolumeX, Send, Mic, MicOff } from 'lucide-react';
 import { motion } from 'motion/react';
 
-import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase } from './engine/Core';
+import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase, Stats, PruningAuditRecord } from './engine/Core';
+import { AudioEngine } from './engine/AudioEngine';
+import { AudioInput } from './engine/AudioInputEngine';
 
 export default function App() {
-  const [stats, setStats] = useState({ 
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [concept, setConcept] = useState("");
+  const [activeConcept, setActiveConcept] = useState("");
+  const [stats, setStats] = useState<Stats>({ 
     nodeCount: 0, 
     edgeCount: 0, 
     avgStrength: 0,
@@ -29,12 +35,78 @@ export default function App() {
       'Tension': 0,
       'Collapse': 0
     } as Record<CyclePhase, number>,
-    ghostCount: 0
+    ghostCount: 0,
+    redFlags: [],
+    fossilRecord: [],
+    audit: {
+      prune_integrity_score: 0,
+      uncertainty_preservation_score: 0,
+      calm_pulse_frequency: 0,
+      contradiction_resolution_quality: 0,
+      ghosttrace_peak: 0,
+      memory_prune_events: 0,
+      time_to_synthesis: 0,
+      hyper_sync_events: 0,
+      fragmentation_events: 0
+    }
   });
 
-  const handleStateUpdate = useCallback((newStats: typeof stats) => {
+  const lastPruneEvents = useRef(0);
+
+  const handleStateUpdate = useCallback((newStats: Stats) => {
     setStats(newStats);
-  }, []);
+    
+    if (audioEnabled) {
+      AudioEngine.update(newStats.phase, newStats.phaseDominance);
+      if (newStats.audit.memory_prune_events > lastPruneEvents.current) {
+        AudioEngine.triggerSnap();
+        lastPruneEvents.current = newStats.audit.memory_prune_events;
+      }
+    }
+  }, [audioEnabled]);
+
+  const toggleAudio = () => {
+    if (!audioEnabled) {
+      AudioEngine.init();
+      AudioEngine.resume();
+      setAudioEnabled(true);
+    } else {
+      if (AudioEngine.masterGain) {
+         AudioEngine.masterGain.gain.value = 0; // Mute
+      }
+      setAudioEnabled(false);
+    }
+  };
+
+  useEffect(() => {
+    if (audioEnabled && AudioEngine.masterGain) {
+       AudioEngine.masterGain.gain.value = 0.5;
+       AudioEngine.update(stats.phase, stats.phaseDominance);
+    }
+  }, [audioEnabled]);
+
+  const toggleListening = async () => {
+    if (!listening) {
+      const success = await AudioInput.startListening();
+      if (success) setListening(true);
+    } else {
+      AudioInput.stopListening();
+      setListening(false);
+    }
+  };
+
+  const handleInjectConcept = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!concept.trim()) return;
+    setActiveConcept(concept.trim());
+    setConcept('');
+    // Large perturbation event for concept injection
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+           window.dispatchEvent(new CustomEvent('perturb-field'));
+        }, i * 200);
+    }
+  };
 
   return (
     <div className="w-screen h-screen bg-[#02040a] text-slate-300 flex flex-col font-sans selection:bg-cyan-500/30 overflow-hidden relative border-8 border-[#0a0f1d]">
@@ -59,20 +131,68 @@ export default function App() {
       <NeuralGrid onStateUpdate={handleStateUpdate} />
 
       {/* Overlay UI */}
-      <ConsciousnessMonitor stats={stats} />
+      <ConsciousnessMonitor stats={stats} activeConcept={activeConcept} />
 
       {/* User Controls Intro */}
       <motion.div 
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="absolute bottom-32 right-8 flex flex-col items-end gap-2 z-20"
+        className="absolute bottom-32 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-20 pointer-events-auto"
       >
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full py-2 px-5 flex items-center gap-3">
-          <MousePointer2 className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-[10px] uppercase tracking-[0.2em] font-mono text-slate-400 font-bold">
-            Perturb the field
-          </span>
+        <form onSubmit={handleInjectConcept} className="flex gap-2 w-72">
+           <input 
+              type="text" 
+              value={concept}
+              onChange={(e) => setConcept(e.target.value)}
+              placeholder="Inject concept (e.g. 'Ocean')"
+              className="bg-black/50 border border-white/10 text-cyan-100 rounded-full py-2 px-5 text-[11px] font-mono w-full focus:outline-none focus:border-cyan-500/50 backdrop-blur-md"
+              maxLength={20}
+           />
+           <button 
+             type="submit" 
+             className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 rounded-full h-[34px] w-[34px] flex items-center justify-center hover:bg-cyan-500/40 transition-colors flex-shrink-0"
+           >
+             <Send className="w-3.5 h-3.5" />
+           </button>
+        </form>
+
+        <div className="flex items-center gap-4">
+          <div 
+            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full py-2 px-6 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('perturb-field'));
+            }}
+          >
+            <MousePointer2 className="w-4 h-4 text-cyan-400" />
+            <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-slate-400 font-bold">
+              Perturb the field
+            </span>
+          </div>
+
+          <div 
+            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full py-2 px-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
+            onClick={toggleAudio}
+            title="Toggle Engine Audio Output"
+          >
+            {audioEnabled ? (
+              <Volume2 className="w-4 h-4 text-cyan-400" />
+            ) : (
+              <VolumeX className="w-4 h-4 text-slate-500" />
+            )}
+          </div>
+          
+          <div 
+            className={`backdrop-blur-md border border-white/10 rounded-full py-2 px-4 flex items-center gap-3 cursor-pointer transition-colors ${listening ? 'bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.3)]' : 'bg-white/5 hover:bg-white/10'}`}
+            onClick={toggleListening}
+            title="Enable Microphone (Environmental Sound Input)"
+          >
+            {listening ? (
+              <Mic className="w-4 h-4 text-rose-400 animate-pulse" />
+            ) : (
+              <MicOff className="w-4 h-4 text-slate-500" />
+            )}
+          </div>
         </div>
       </motion.div>
 

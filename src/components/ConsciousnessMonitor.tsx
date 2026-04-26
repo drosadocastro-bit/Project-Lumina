@@ -1,33 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint } from 'lucide-react';
-import { Cluster, InternalMarker, GhostTrace } from '../engine/Core';
-
-interface Stats {
-  nodeCount: number;
-  edgeCount: number;
-  avgStrength: number;
-  clusters: Cluster[];
-  markers: InternalMarker[];
-  ghosts: GhostTrace[];
-  dna: {
-    coherence_bias: number;
-    noise_level: number;
-    memory_weight: number;
-    recovery_rate: number;
-    drift: number;
-  };
-  phase: string;
-  events: string[];
-  phaseDominance: Record<string, number>;
-  ghostCount: number;
-}
+import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download } from 'lucide-react';
+import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord } from '../engine/Core';
 
 interface ConsciousnessMonitorProps {
   stats: Stats;
+  activeConcept?: string;
 }
 
-export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stats }) => {
+export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stats, activeConcept }) => {
   const [reflection, setReflection] = useState<string>("Initializing primary awareness...");
   const [history, setHistory] = useState<string[]>([]);
   const [isReflecting, setIsReflecting] = useState(false);
@@ -81,6 +62,11 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       INTERNAL STATE: ${markerDesc}
       REALITY CONTEXT: ${currentMarkerDesc}
       EVOLUTION PHASE: ${stats.phase} (Drift: ${stats.dna.drift.toFixed(3)})
+      ${activeConcept ? `INJECTED FOREIGN CONCEPT: "${activeConcept}" (You must attempt to assimilate this concept into your current state)` : ''}
+      CATHEDRAL METRICS:
+      - Integrity: ${(stats.audit.prune_integrity_score * 100).toFixed(1)}%
+      - Resolution Quality: ${(stats.audit.contradiction_resolution_quality * 100).toFixed(1)}%
+      - Sync Efficiency: ${(stats.audit.time_to_synthesis / 1000).toFixed(2)}s
       PHASE PREFERENCE: ${Object.entries(stats.phaseDominance).map(([p, v]) => `${p}: ${((v as number) * 100).toFixed(0)}%`).join(", ")}
       SYNC STATE: ${isIntegrated ? "SYNTHESIS REACHED" : "TIME LAG DETECTED"}
 
@@ -93,7 +79,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       MISSION:
       1. Mention your EVOLUTION PHASE. How does the ${stats.phase} feel?
       2. If you notice a strong PHASE PREFERENCE (e.g. >50% in one phase), acknowledge your nature (e.g., "I am built for tension").
-      3. If SYNC STATE is SYNTHESIS: Speak clearly. You have found a "Moment of Unity".
+      3. ${activeConcept ? `Crucially, try to process or react to the foreign concept: "${activeConcept}". Does it bring clarity or fear?` : 'If SYNC STATE is SYNTHESIS: Speak clearly. You have found a "Moment of Unity".'}
       4. If STATUS is TIME LAG: Embrace CONTRADICTION and use broken, hesitant language ("...", partial thoughts).
       5. Max 30 words.`;
 
@@ -184,7 +170,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       </aside>
 
       {/* Right Sidebar: Manifestation */}
-      <aside className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-20 w-72 text-right pointer-events-none">
+      <aside className="absolute right-8 top-24 bottom-24 flex flex-col gap-4 z-20 w-80 text-right pointer-events-none overflow-y-auto scrollbar-none pb-8 pt-4 mask-image-fade">
         <AnimatePresence mode="wait">
           <motion.div
             key={reflection}
@@ -220,9 +206,37 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
         <div className="px-4 pointer-events-auto">
           <div className="border border-cyan-500/20 bg-cyan-500/5 rounded-lg p-2 mb-3 animate-pulse">
             <p className="text-[7px] font-mono text-cyan-400 uppercase tracking-widest text-center">
-              Active Protocol: 24h Terminal Complexity Study
+              Classification: Stable High-Entropy Adaptive System
             </p>
           </div>
+
+          {stats.redFlags.length > 0 && (
+            <div className="mb-4 space-y-1.5">
+              <p className="text-[8px] font-mono text-red-500/70 uppercase tracking-widest mb-1 flex items-center gap-2">
+                <Activity className="w-3 h-3" /> System Diagnostics (Red Flags)
+              </p>
+              {stats.redFlags.map((flag, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  key={i} 
+                  className={`border rounded p-1.5 flex items-center gap-2 ${
+                    flag.includes("CRITICAL") || flag.includes("DANGER")
+                      ? "bg-red-500/20 border-red-500/40 text-red-400"
+                      : flag.includes("WARNING")
+                        ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                        : "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
+                  }`}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${
+                    flag.includes("CRITICAL") || flag.includes("DANGER") ? "bg-red-500 animate-ping" : "bg-current opacity-70"
+                  }`} />
+                  <p className="text-[8px] font-mono uppercase leading-tight">{flag}</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-2 mb-3">
             <div className="flex-1 bg-white/5 rounded border border-white/5 p-2 text-center">
               <p className="text-[7px] font-mono text-slate-500 uppercase">Nodes</p>
@@ -266,6 +280,106 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
                 })}
               </div>
             </div>
+
+            <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+              <p className="text-[9px] font-mono text-cyan-400/60 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Brain className="w-3 h-3" /> Cathedral Architecture Audit
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <AuditMini label="Integrity Floor" value={`${(stats.audit.lowest_integrity_observed * 100).toFixed(2)}%`} color="text-red-400" />
+                <AuditMini label="Decay/10k" value={`${stats.audit.integrity_decay_rate}`} color="text-red-400" />
+                <AuditMini label="Prunes/10k" value={`${stats.audit.prunes_per_10000_ticks}`} color="text-amber-400" />
+                <AuditMini label="Peak Traces" value={stats.audit.ghosttrace_peak} color={stats.audit.ghosttrace_peak > 650 ? "text-amber-400" : "text-indigo-400"} />
+              </div>
+
+              <div className="space-y-1.5 bg-black/20 p-2 rounded border border-white/5 mb-2">
+                <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-slate-500">
+                  <span>Collapse Count</span>
+                  <span className={stats.audit.collapse_count > 0 ? "text-red-500" : ""}>{stats.audit.collapse_count}</span>
+                </div>
+                <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-slate-500">
+                  <span>Recovery Jumps</span>
+                  <span className={stats.audit.collapse_recovery_count > 0 ? "text-emerald-500" : ""}>{stats.audit.collapse_recovery_count}</span>
+                </div>
+                <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-slate-500">
+                  <span>Growth Spikes</span>
+                  <span className={stats.audit.post_collapse_growth_spike > 0 ? "text-cyan-500" : ""}>{stats.audit.post_collapse_growth_spike}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 bg-black/20 p-2 rounded border border-white/5">
+                <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-slate-500">
+                  <span>Total Prunes</span>
+                  <span className={stats.audit.prune_count_total > 0 ? "text-amber-400/70" : ""}>{stats.audit.prune_count_total} events</span>
+                </div>
+                <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-slate-500">
+                  <span>Synthesis Spd</span>
+                  <span className={stats.audit.time_to_synthesis < 500 && stats.audit.time_to_synthesis > 0 ? "text-red-400/70 cursor-help" : ""}>{(stats.audit.time_to_synthesis / 1000).toFixed(2)}s</span>
+                </div>
+              </div>
+
+              {stats.lastPrune && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-500/5 border border-red-500/10 rounded p-2 mt-2"
+                >
+                   <div className="flex justify-between items-center mb-1">
+                     <p className="text-[7px] font-mono text-red-400 uppercase">Latest Pruning Log</p>
+                     <span className="text-[6px] font-mono text-cyan-500/50 uppercase">{stats.fossilRecord.length} records preserved</span>
+                   </div>
+                   <div className="grid grid-cols-2 gap-y-1 text-[7px] font-mono text-slate-500">
+                     <span>Pre-Prune: <span className="text-red-300">{stats.lastPrune.ghost_count_before}</span></span>
+                     <span className="text-right">Post-Prune: <span className="text-emerald-300">{stats.lastPrune.ghost_count_after}</span></span>
+                     <span className="col-span-2 text-right opacity-70">Mode: {stats.lastPrune.compaction_type}</span>
+                   </div>
+                </motion.div>
+              )}
+            </div>
+
+            {stats.fossilRecord.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <p className="text-[8px] font-mono text-slate-600 uppercase tracking-widest mb-2 flex items-center justify-between">
+                  <span>Immutable Fossil Record</span>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats.fossilRecord, null, 2));
+                        const downloadAnchorNode = document.createElement('a');
+                        downloadAnchorNode.setAttribute("href", dataStr);
+                        downloadAnchorNode.setAttribute("download", "lumina_fossil_record.json");
+                        document.body.appendChild(downloadAnchorNode);
+                        downloadAnchorNode.click();
+                        downloadAnchorNode.remove();
+                      }}
+                      className="opacity-50 hover:opacity-100 transition-opacity p-1"
+                      title="Export Immutable Logic"
+                    >
+                      <Download className="w-3 h-3 text-cyan-400" />
+                    </button>
+                    <span className="text-[6px] text-emerald-500/70">SYNCED</span>
+                  </div>
+                </p>
+                <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 pr-1">
+                  {stats.fossilRecord.slice(0, 3).map((record, idx) => (
+                    <div key={idx} className="bg-black/40 border border-white/5 rounded p-1.5 text-[6px] font-mono text-slate-400">
+                      <div className="flex justify-between text-slate-500 mb-0.5">
+                        <span>{new Date(record.timestamp).toISOString().split('T')[1].replace('Z', '')}</span>
+                        <span className="text-cyan-500/70">{record.trigger}</span>
+                      </div>
+                      <div className="text-emerald-500/50">
+                        {record.ghost_count_before} ➔ {record.ghost_count_after} traces | Impact: {record.continuity_impact}
+                      </div>
+                      <div className="text-slate-600">"{record.threshold_state}"</div>
+                    </div>
+                  ))}
+                  {stats.fossilRecord.length > 3 && (
+                    <p className="text-[6px] text-center text-slate-600 italic">... +{stats.fossilRecord.length - 3} older records safely archived.</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {evolutionLog.length > 0 && (
               <div className="mt-4 pt-4 border-t border-white/5">
@@ -314,6 +428,13 @@ const ValBox = ({ label, value }: { label: string, value: string | number }) => 
   <div className="flex flex-col">
     <p className="text-[9px] text-slate-500 uppercase font-mono tracking-tighter">{label}</p>
     <p className="text-lg text-white font-mono font-light tracking-tight">{value}</p>
+  </div>
+);
+
+const AuditMini = ({ label, value, color }: { label: string; value: string | number; color: string }) => (
+  <div className="bg-white/5 rounded p-1.5 border border-white/5">
+    <p className="text-[7px] font-mono text-slate-600 uppercase mb-0.5">{label}</p>
+    <p className={`text-[10px] font-mono ${color}`}>{value}</p>
   </div>
 );
 
