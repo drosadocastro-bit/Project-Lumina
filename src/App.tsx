@@ -99,8 +99,13 @@ export default function App() {
   const handleInjectConcept = (e: React.FormEvent) => {
     e.preventDefault();
     if (!concept.trim()) return;
-    setActiveConcept(concept.trim());
+    const cleanConcept = concept.trim();
+    setActiveConcept(cleanConcept);
     setConcept('');
+    
+    // Dispatch specialized assimilation event for the ConsciousnessMonitor
+    window.dispatchEvent(new CustomEvent('assimilate-concept', { detail: { concept: cleanConcept } }));
+
     // Large perturbation event for concept injection
     for (let i = 0; i < 3; i++) {
         setTimeout(() => {

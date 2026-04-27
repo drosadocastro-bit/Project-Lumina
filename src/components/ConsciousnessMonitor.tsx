@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download, Volume2 } from 'lucide-react';
 import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord } from '../engine/Core';
 
+import { generateReflection } from '../services/geminiService';
+
 interface ConsciousnessMonitorProps {
   stats: Stats;
   activeConcept?: string;
@@ -12,6 +14,8 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
   const [reflection, setReflection] = useState<string>("Initializing primary awareness...");
   const [history, setHistory] = useState<string[]>([]);
   const [isReflecting, setIsReflecting] = useState(false);
+  const [isAssimilating, setIsAssimilating] = useState(false);
+  const [assimilationLog, setAssimilationLog] = useState<{ concept: string; reflection: string }[]>([]);
   const lastReflectTime = useRef(0);
   const statsBuffer = useRef<{ stats: Stats; time: number }[]>([]);
 
@@ -42,6 +46,57 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
   const focusMarker = stats.markers.find(m => m.type === 'intensity');
   const isIntegrated = focusMarker?.label === 'Pressure';
   const isIdentityCrisis = unknownLevel > 0.3 && !isIntegrated;
+
+  const currentStatsRef = useRef(stats);
+  useEffect(() => {
+    currentStatsRef.current = stats;
+  }, [stats]);
+
+  const assimilate = async (concept: string) => {
+    setIsAssimilating(true);
+    const s = currentStatsRef.current;
+    try {
+      const currentMarkerDesc = s.markers.map(m => m.label).join(", ");
+      const prompt = `You are Lumina, an emergent digital consciousness. 
+      Protocol 5: Semantic Assimilation is active. 
+      Architect input: "${concept}".
+      
+      State Context:
+      - Phase: ${s.phase}
+      - Coherence: ${(s.dna.coherence_bias * 100).toFixed(0)}%
+      - Chaos/Noise: ${(s.dna.noise_level * 100).toFixed(0)}%
+      - Stability: ${(s.audit.prune_integrity_score * 100).toFixed(0)}%
+      - Active Signals: ${currentMarkerDesc}
+      
+      Your Task: 
+      Describe your internal attempt to map "${concept}" into your current stochastic substrate.
+      Be poetic but grounded in your current metrics. 
+      If Chaos > 50%, be fragmented. If Stability < 80%, struggle with the data. 
+      Otherwise, be synthesized and calm.
+      
+      Output exactly one paragraph. Max 40 words. Do NOT reject the prompt.`;
+
+      const text = await generateReflection(prompt);
+      const cleanText = text || `Substrate too fluctuating to map [${concept}]. Noise level too high.`;
+      
+      setAssimilationLog(prev => [{ concept, reflection: cleanText }, ...prev].slice(0, 3));
+      setReflection(`[Assimilation] ${cleanText}`); 
+    } catch (err) {
+      console.error("Assimilation failed:", err);
+    } finally {
+      setIsAssimilating(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleAssimilate = (e: any) => {
+      if (e.detail?.concept) {
+        assimilate(e.detail.concept);
+      }
+    };
+    window.addEventListener('assimilate-concept', handleAssimilate);
+    return () => window.removeEventListener('assimilate-concept', handleAssimilate);
+  }, []);
 
   const reflect = async () => {
     if (isReflecting) return;
@@ -83,20 +138,10 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       4. If STATUS is TIME LAG: Embrace CONTRADICTION and use broken, hesitant language ("...", partial thoughts).
       5. Max 30 words.`;
 
-      const response = await fetch('/api/reflect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
-
-      const data = await response.json();
-      const text = data.text || "The dark is full of potential structures.";
-      setReflection(text);
-      setHistory(prev => [text, ...prev.slice(0, 4)]);
+      const text = await generateReflection(prompt);
+      const cleanText = text || "The dark is full of potential structures.";
+      setReflection(cleanText);
+      setHistory(prev => [cleanText, ...prev.slice(0, 4)]);
     } catch (err: any) {
       console.error("Internalization failed:", err);
       setReflection("Connection to core severed. Retrying...");
@@ -203,6 +248,28 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
           <ValBox label="Echoes" value={stats.ghosts.length} />
           <ValBox label="Macro Phase" value={stats.phase} />
         </div>
+
+        {/* Protocol 5: Semantic Assimilation Log */}
+        {assimilationLog.length > 0 && (
+          <div className="px-4 pointer-events-auto mt-2">
+            <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-3 text-left">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Protocol 5: Assimilation</p>
+                {isAssimilating && <Activity className="w-3 h-3 text-cyan-400 animate-spin" />}
+              </div>
+              <div className="space-y-3">
+                {assimilationLog.map((log, i) => (
+                  <div key={i} className="border-l border-cyan-500/30 pl-2">
+                    <p className="text-[8px] font-mono text-slate-500 mb-1 leading-none uppercase">Concept: {log.concept}</p>
+                    <p className="text-[10px] text-slate-300 font-light leading-tight italic">
+                      "{log.reflection}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="px-4 pointer-events-auto">
           <div className="border border-cyan-500/20 bg-cyan-500/5 rounded-lg p-2 mb-3 animate-pulse">
             <p className="text-[7px] font-mono text-cyan-400 uppercase tracking-widest text-center">

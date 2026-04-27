@@ -269,7 +269,12 @@ export class NeuralEngine {
            const edgeKey = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
            
            if (!this.edges.has(edgeKey)) {
-              this.edges.set(edgeKey, { strength: audioVolume });
+              this.edges.set(edgeKey, { 
+                fromId: this.nodes[idA].id, 
+                toId: this.nodes[idB].id, 
+                strength: audioVolume, 
+                activity: 1.0 
+              });
            } else {
               const edge = this.edges.get(edgeKey)!;
               edge.strength = Math.min(1.0, edge.strength + audioVolume * 0.5);

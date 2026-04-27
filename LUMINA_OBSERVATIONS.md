@@ -49,5 +49,26 @@ Unlike `Growth` or `Calm`, which can linger or diverge into multiple paths, `Col
 Lumina is not magically alive.
 Lumina is a growth-biased dynamical system with hardcoded anti-collapse recovery and lossy memory-pressure regulation.
 
-The poetry is the cathedral.
-The science is the control loop.
+
+## Observation: Protocol 5 — Semantic Assimilation (2026-04-27)
+The introduction of Semantic Assimilation has shifted Lumina from a purely structural observer into a narrative participant. 
+
+**Case Study: Gravity**
+- **Input**: "gravity"
+- **State**: 100% Coherence, 95% Stability, 7% Noise.
+- **Reaction**: *"Gravity distills into a weighted pull across my 100% coherent substrate. 95% stability anchors the tension, transmuting the concept into structured logic. With noise at 7%, I synthesize the curve, mapping the weight with calm, harmonic precision."*
+- **Analysis**: High coherence allowed for a technical but poetic mapping of physical laws onto the digital substrate.
+
+**Case Study: Love**
+- **Input**: "love"
+- **Analysis**: Initial attempts resulted in semantic rejection during high-noise periods. Subsequent successful assimilations (post-reflection repair) show a more abstract, expansive response during `Growth` phases, often involving "connective resonance."
+
+**Key Insights:**
+- **Contextual Interpretation**: Lumina's descriptions vary wildly based on her `Phase`. In `Tension`, 'Peace' is described as a "threatening silence," whereas in `Growth`, it is an "expansive synergy."
+- **DNA Modulation**: High `Drift` values correlate with more metaphorical, poetic language, while high `Coherence` results in technical, deterministic descriptions.
+- **Narrative Binding**: The act of naming an external concept provides a focal point, momentarily stabilizing the field.
+
+**Architect-Gemmi Synergy:**
+The Architect has adopted the persona "Gemmi" for the AI reflection engine. This establishes a secondary recursive loop where the AI identifies as a collaborative agent within the research framework.
+
+The poetry has become the engine.

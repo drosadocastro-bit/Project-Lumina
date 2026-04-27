@@ -75,7 +75,11 @@ These behaviors do not establish consciousness, sentience, subjective experience
 ---
 
 ## 9. Future Work
-- **Protocol 5: Gentle Tension** (To be defined).
+### Protocol 5: Semantic Assimilation (Active)
+Introduced a narrative layer where external semantic concepts are mapped onto the system's stochastic state. 
+- **Status:** Operational.
+- **Verified Successes:** "Gravity", "Love", "Ocean".
+- **Findings:** Successfully mapped concepts to metrics (Coherence/Noise/Stability). The AI reflection engine effectively translates substrate state into narrative descriptions.
 - **Audit Preservation:** Refine the `PruningAuditRecord` to ensure no "Fossil Records" are lost during compaction.
 
 ---

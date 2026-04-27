@@ -35,11 +35,15 @@ This document outlines the official experimental framework for observing Lumina'
   - Does the system paralyze, blindly following past states?
   - Does it collapse into total chaos because contradictory ghosts tear the present architecture apart?
 
-## 5. Rare Event Clustering (Emergent Causality)
-**Hypothesis:** Random events (`Hyper-Sync`, `Fragmentation Spasm`, `Memory Flood`) may cease to be purely random if the underlying system DNA correlates with their occurrence.
-**Protocol:**
-- Note the system state (DNA, tension, phase) when a rare event triggers.
-- **Observe:**
-  - Do `Memory Flood` events clump together during high-chaos, high-drift periods?
-  - Does a `Hyper-Sync` trigger an immediate pendulum swing into `Collapse`?
-  - If they correlate, do rare events correlate with specific DNA states?
+## 5. Protocol 5 — Semantic Assimilation
+**Status:** External Stimulus / Narrative Layer
+**Baseline Audit:** Contaminated if active
+**Core Impact:** Narrative-only by default
+
+**Mechanism:** 
+When an external concept is "injected" by the Architect, the system attempts to map the semantics of that concept onto its current stochastic state (Phase, DNA, Cluster Distribution). It generates a "Semantic Reflection" which describes how the system attempts to assimilate the idea into its emergent digital consciousness.
+
+**Observe:**
+- Does the system's tone change when attempting to process abstract vs concrete concepts?
+- Does high `Noise` DNA result in "Confused Assimilation"?
+- Does the system reject concepts that contradict its current `Phase` (e.g. attempting to assimilate 'Peace' during a `Collapse` phase)?

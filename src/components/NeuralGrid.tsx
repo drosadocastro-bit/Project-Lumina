@@ -39,6 +39,7 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
         engineRef.current.addNode(Math.random() * engineRef.current.width, Math.random() * engineRef.current.height);
       }
     };
+
     window.addEventListener('perturb-field', handlePerturb);
 
     return () => {
@@ -162,8 +163,9 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
         // Glow
         if (node.energy > 0.1) {
           const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, glowSize);
-          gradient.addColorStop(0, `rgba(34, 211, 238, ${node.energy * 0.4})`);
-          gradient.addColorStop(1, 'rgba(34, 211, 238, 0)');
+          const color = '34, 211, 238'; 
+          gradient.addColorStop(0, `rgba(${color}, ${node.energy * 0.4})`);
+          gradient.addColorStop(1, `rgba(${color}, 0)`);
           ctx.fillStyle = gradient;
           ctx.beginPath();
           ctx.arc(node.x, node.y, glowSize, 0, Math.PI * 2);
