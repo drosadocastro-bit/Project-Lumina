@@ -4,7 +4,7 @@ import { ConsciousnessMonitor } from './components/ConsciousnessMonitor';
 import { MousePointer2, Info, Volume2, VolumeX, Send, Mic, MicOff } from 'lucide-react';
 import { motion } from 'motion/react';
 
-import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase, Stats, PruningAuditRecord } from './engine/Core';
+import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase, Stats, PruningAuditRecord, EventDNASnapshot } from './engine/Core';
 import { AudioEngine } from './engine/AudioEngine';
 import { AudioInput } from './engine/AudioInputEngine';
 
@@ -20,6 +20,7 @@ export default function App() {
     clusters: [] as Cluster[],
     markers: [] as InternalMarker[],
     ghosts: [] as GhostTrace[],
+    anomalySnapshots: [] as EventDNASnapshot[],
     dna: {
       coherence_bias: 0.5,
       noise_level: 0.2,

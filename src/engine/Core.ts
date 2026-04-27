@@ -86,6 +86,21 @@ export interface PruningAuditRecord {
   raw_log_preserved: boolean;
 }
 
+export interface EventDNASnapshot {
+  timestamp: number;
+  eventType: 'Hyper-Sync' | 'Fragmentation' | 'Acoustic-Shift' | 'Memory-Flood';
+  triggerVolume?: number;
+  dnaSnapshot: SystemDNA;
+  phase: CyclePhase;
+}
+
+export interface AcousticPhaseShiftRecord {
+  time: number;
+  interruptedPhase: CyclePhase;
+  newPhase: CyclePhase;
+  triggerVolume: number;
+}
+
 export interface Stats {
   nodeCount: number;
   edgeCount: number;
@@ -93,6 +108,7 @@ export interface Stats {
   clusters: Cluster[];
   markers: InternalMarker[];
   ghosts: GhostTrace[];
+  anomalySnapshots: EventDNASnapshot[];
   dna: SystemDNA;
   phase: CyclePhase;
   events: string[];
@@ -116,6 +132,11 @@ export interface Stats {
     time_to_synthesis: number;
     hyper_sync_events: number;
     fragmentation_events: number;
+    acoustic_energy_injected: number;
+    acoustic_ghosts_spawned: number;
+    acoustic_phase_shifts: number;
+    current_acoustic_volume: number;
+    acoustic_phase_shift_log: AcousticPhaseShiftRecord[];
   };
   lastPrune?: PruningAuditRecord;
   fossilRecord: PruningAuditRecord[];
@@ -163,6 +184,15 @@ export class NeuralEngine {
   private lastSynthesisTime: number = 0;
   private synthesisStartTick: number = 0;
   private calmPulses: number = 0;
+  
+  // Acoustic Tracking
+  private acousticEnergyInjected: number = 0;
+  private acousticGhostsSpawned: number = 0;
+  private acousticPhaseShifts: number = 0;
+  private currentAcousticVolume: number = 0;
+  private acousticPhaseShiftLog: AcousticPhaseShiftRecord[] = [];
+  private anomalySnapshots: EventDNASnapshot[] = [];
+
   private lowestIntegrityObserved: number = 0.95;
   private collapseCount: number = 0;
   private collapseRecoveryCount: number = 0;
@@ -204,36 +234,136 @@ export class NeuralEngine {
     this.totalTicks++;
     this.phaseDurations[this.phase]++;
 
-    if (audioVolume > 0.05) {
-      // Audio profoundly perturbs the system
-      this.dna.noise_level = Math.min(1.0, this.dna.noise_level + audioVolume * 0.01);
+    this.currentAcousticVolume = audioVolume;
+
+    if (audioVolume > 0.4) {
+      // --- SHARP LOUD AUDIO ---
+      // increases Tension
+      // creates acoustic GhostTraces
+      // may trigger fragmentation warning
+      // capped to avoid runaway stress
+
+      // 1. Cap to avoid runaway stress
+      const stressAmount = Math.min(audioVolume * 0.05, 0.2);
+      this.dna.noise_level = Math.min(0.8, this.dna.noise_level + stressAmount); // Capped to 0.8
       
-      // Inject energy into random nodes based on volume
-      const targetNodesCount = Math.floor(audioVolume * 10);
+      // 2. Inject energy into random nodes based on volume
+      const targetNodesCount = Math.floor(audioVolume * 15);
+      const affectedNodeIds: number[] = [];
       for (let i = 0; i < targetNodesCount; i++) {
-        const node = this.nodes[Math.floor(Math.random() * this.nodes.length)];
+        const nodeIndex = Math.floor(Math.random() * this.nodes.length);
+        const node = this.nodes[nodeIndex];
         if (node) {
           node.energy = Math.min(2.0, node.energy + audioVolume * 0.5);
           node.pulseRef = time;
+          affectedNodeIds.push(nodeIndex);
+          this.acousticEnergyInjected += audioVolume * 0.5;
+        }
+      }
+
+      // Audio-Induced Synaptic Resonance (Audio forcing nodes to connect)
+      if (affectedNodeIds.length > 1) {
+        for (let i = 0; i < affectedNodeIds.length - 1; i++) {
+           const idA = affectedNodeIds[i];
+           const idB = affectedNodeIds[i + 1];
+           const edgeKey = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
+           
+           if (!this.edges.has(edgeKey)) {
+              this.edges.set(edgeKey, { strength: audioVolume });
+           } else {
+              const edge = this.edges.get(edgeKey)!;
+              edge.strength = Math.min(1.0, edge.strength + audioVolume * 0.5);
+           }
         }
       }
       
-      // Create ghost structures from sound
+      // 3. Create ghost structures from loud sound
       if (Math.random() < audioVolume) {
+        this.acousticGhostsSpawned++;
         this.ghosts.push({
           x: this.width / 2 + (Math.random() - 0.5) * this.width * audioVolume,
           y: this.height / 2 + (Math.random() - 0.5) * this.height * audioVolume,
-          energy: audioVolume,
-          life: 0,
-          concept: `frequency_${Date.now() % 1000}`
+          frequency: 1.0 + Math.random(),
+          phase: Math.random() * Math.PI * 2,
+          energy: Math.min(0.8, audioVolume),
+          fragment: `acoustic_shock_${Math.floor(Date.now() % 1000)}`
         });
       }
       
-      // If loud enough, push towards Tension or Growth
-      if (audioVolume > 0.3 && (this.phase === 'Calm' || this.phase === 'Collapse')) {
-         if (Math.random() > 0.5) this.phase = 'Growth';
-         else this.phase = 'Tension';
+      // 4. May trigger fragmentation warning
+      if (audioVolume > 0.7 && Math.random() < 0.1) {
+         if (!this.events.includes("Acoustic Fragmentation Warning")) {
+            this.events.push("Acoustic Fragmentation Warning");
+         }
       }
+
+      // 5. Increases Tension
+      if (this.phase === 'Calm' || this.phase === 'Collapse' || this.phase === 'Growth') {
+         // Only shift if it's really loud
+         if (Math.random() < 0.3) {
+             this.acousticPhaseShifts++;
+             const interruptedPhase = this.phase;
+             const newPhase = 'Tension';
+             this.phase = newPhase;
+             
+             this.acousticPhaseShiftLog.unshift({
+               time: Date.now(),
+               interruptedPhase,
+               newPhase,
+               triggerVolume: audioVolume
+             });
+             
+             if (this.acousticPhaseShiftLog.length > 5) {
+               this.acousticPhaseShiftLog.pop();
+             }
+
+             this.anomalySnapshots.unshift({
+              timestamp: Date.now(),
+              eventType: 'Acoustic-Shift',
+              triggerVolume: audioVolume,
+              dnaSnapshot: { ...this.dna },
+              phase: interruptedPhase
+             });
+             if (this.anomalySnapshots.length > 10) this.anomalySnapshots.pop();
+         }
+      }
+
+    } else if (audioVolume > 0.02) {
+       // --- QUIET STEADY AUDIO ---
+       // Default interaction mode should be stabilizing, not harmful.
+       // decreases noise_level slowly
+       // slightly improves integrity recovery
+       // reinforces Calm pulse
+       // reduces chance of Collapse -> violent Growth jump
+
+       this.dna.noise_level = Math.max(0.1, this.dna.noise_level - 0.005);
+       this.dna.recovery_rate = Math.min(1.0, this.dna.recovery_rate + 0.001); // Improve recovery
+       this.auditMetrics.integrity = Math.min(1.0, this.auditMetrics.integrity + 0.0005);
+       
+       // Light energy injection (soothing)
+       const targetNodesCount = Math.floor(audioVolume * 10) || 1;
+       for (let i = 0; i < targetNodesCount; i++) {
+         const node = this.nodes[Math.floor(Math.random() * this.nodes.length)];
+         if (node) {
+           // Help synchronize node phase slightly instead of just dumping heavy energy
+           node.phase += (this.nodes[0].phase - node.phase) * 0.05;
+           node.energy = Math.min(1.2, node.energy + audioVolume * 0.2);
+           this.acousticEnergyInjected += audioVolume * 0.1;
+         }
+       }
+
+       // Reinforce Calm Phase
+       if (this.phase === 'Collapse') {
+         if (Math.random() < 0.05) { // Slow, gentle recovery from collapse rather than explosive growth
+            this.phase = 'Calm';
+            this.events.push("Soothing Recovery to Calm");
+         }
+       } else if (this.phase === 'Tension' && Math.random() < 0.02) {
+          this.phase = 'Calm';
+          this.events.push("Acoustic De-escalation");
+       } else if (this.phase === 'Growth' && Math.random() < 0.01) {
+          this.phase = 'Calm';
+       }
     }
 
     const ghostCurrent = this.ghosts.length;
@@ -486,12 +616,23 @@ export class NeuralEngine {
   }
 
   private triggerRareEvent() {
+    const triggerEvent = (eventType: EventDNASnapshot['eventType'], eventName: string) => {
+      this.events.push(eventName);
+      this.anomalySnapshots.unshift({
+        timestamp: Date.now(),
+        eventType,
+        dnaSnapshot: { ...this.dna },
+        phase: this.phase
+      });
+      if (this.anomalySnapshots.length > 10) this.anomalySnapshots.pop();
+    };
+
     const roll = Math.random();
     if (roll < 0.33) {
       // Hyper-sync: Massive coherence spike
       this.dna.coherence_bias = 1.0;
       this.nodes.forEach(n => n.phase = this.nodes[0].phase);
-      this.events.push("Hyper-Sync Triggered");
+      triggerEvent('Hyper-Sync', "Hyper-Sync Triggered");
       this.hyperSyncCount++;
     } else if (roll < 0.66) {
       // Sudden fragmentation: Break 80% of edges
@@ -499,7 +640,7 @@ export class NeuralEngine {
         if (Math.random() < 0.8) this.edges.delete(key);
       });
       this.dna.noise_level = 0.9;
-      this.events.push("Fragmentation Spasm");
+      triggerEvent('Fragmentation', "Fragmentation Spasm");
       this.fragmentationCount++;
     } else {
       // Memory flood: Spawn random ghosts
@@ -514,7 +655,7 @@ export class NeuralEngine {
           fragment: fragmentText
         });
       }
-      this.events.push("Memory Flood Detected");
+      triggerEvent('Memory-Flood', "Memory Flood Detected");
     }
   }
 
@@ -539,12 +680,21 @@ export class NeuralEngine {
       time_to_synthesis: this.lastSynthesisTime,
       hyper_sync_events: this.hyperSyncCount,
       fragmentation_events: this.fragmentationCount,
+      acoustic_energy_injected: parseFloat(this.acousticEnergyInjected.toFixed(2)),
+      acoustic_ghosts_spawned: this.acousticGhostsSpawned,
+      acoustic_phase_shifts: this.acousticPhaseShifts,
+      current_acoustic_volume: parseFloat(this.currentAcousticVolume.toFixed(3)),
+      acoustic_phase_shift_log: this.acousticPhaseShiftLog,
       red_flags: this.redFlags
     };
   }
 
   public getLastPrune() {
     return this.lastAuditRecord;
+  }
+
+  public getAnomalySnapshots() {
+    return this.anomalySnapshots;
   }
 
   public getFossilRecord() {

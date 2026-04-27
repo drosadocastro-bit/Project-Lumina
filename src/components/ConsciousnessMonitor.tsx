@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download } from 'lucide-react';
+import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download, Volume2 } from 'lucide-react';
 import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord } from '../engine/Core';
 
 interface ConsciousnessMonitorProps {
@@ -282,6 +282,35 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
             </div>
 
             <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+              <p className="text-[9px] font-mono text-rose-400/60 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Volume2 className="w-3 h-3" /> External Stimulus (Audio)
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <AuditMini label="Current Vol" value={`${(stats.audit.current_acoustic_volume * 100).toFixed(1)}%`} color={stats.audit.current_acoustic_volume > 0.05 ? "text-rose-400" : "text-slate-500"} />
+                <AuditMini label="Spawns" value={`${stats.audit.acoustic_ghosts_spawned}`} color="text-amber-400" />
+                <AuditMini label="Energy Injected" value={`${stats.audit.acoustic_energy_injected}`} color="text-emerald-400" />
+                <AuditMini label="Phase Shifts" value={`${stats.audit.acoustic_phase_shifts}`} color={stats.audit.acoustic_phase_shifts > 0 ? "text-indigo-400" : "text-slate-500"} />
+              </div>
+
+              {stats.audit.acoustic_phase_shift_log && stats.audit.acoustic_phase_shift_log.length > 0 && (
+                <div className="space-y-1.5 bg-black/20 p-2 rounded border border-rose-500/10 mb-2">
+                  <p className="text-[8px] font-mono uppercase tracking-widest text-slate-500 mb-1">Recent Audio Interruptions</p>
+                  {stats.audit.acoustic_phase_shift_log.map((log, i) => (
+                    <div key={i} className="text-[9px] font-mono flex flex-col gap-0.5 border-l-2 border-rose-500/20 pl-2">
+                      <span className="text-slate-400">
+                        {new Date(log.time).toLocaleTimeString()} · Vol: {(log.triggerVolume * 100).toFixed(1)}%
+                      </span>
+                      <span className="text-slate-300">
+                        {log.interruptedPhase} <span className="text-rose-400">→</span> {log.newPhase}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
               <p className="text-[9px] font-mono text-cyan-400/60 uppercase tracking-widest mb-2 flex items-center gap-2">
                 <Brain className="w-3 h-3" /> Cathedral Architecture Audit
               </p>
@@ -377,6 +406,46 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
                   {stats.fossilRecord.length > 3 && (
                     <p className="text-[6px] text-center text-slate-600 italic">... +{stats.fossilRecord.length - 3} older records safely archived.</p>
                   )}
+                </div>
+              </div>
+            )}
+
+            {stats.anomalySnapshots && stats.anomalySnapshots.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <p className="text-[8px] font-mono text-slate-600 uppercase tracking-widest mb-2 flex items-center justify-between">
+                  <span>DNA Anomaly Snapshots</span>
+                  <button 
+                    onClick={() => {
+                      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats.anomalySnapshots, null, 2));
+                      const downloadAnchorNode = document.createElement('a');
+                      downloadAnchorNode.setAttribute("href", dataStr);
+                      downloadAnchorNode.setAttribute("download", "lumina_dna_anomalies.json");
+                      document.body.appendChild(downloadAnchorNode);
+                      downloadAnchorNode.click();
+                      downloadAnchorNode.remove();
+                    }}
+                    className="flex items-center gap-1 text-slate-500 hover:text-cyan-400 transition-colors"
+                    title="Export DNA Anomalies"
+                  >
+                    <Download className="w-3 h-3" />
+                  </button>
+                </p>
+                <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 pr-1">
+                  {stats.anomalySnapshots.map((snap, idx) => (
+                    <div key={idx} className="bg-black/40 border border-white/5 rounded p-1.5 text-[6px] font-mono text-slate-400">
+                      <div className="flex justify-between text-slate-500 mb-0.5">
+                        <span>{new Date(snap.timestamp).toLocaleTimeString()}</span>
+                        <span className="text-cyan-500/70">{snap.eventType}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 text-[6px]">
+                        <span className="text-pink-400">Chaos: {snap.dnaSnapshot.noise_level.toFixed(2)}</span>
+                        <span className="text-cyan-400">Coherence: {snap.dnaSnapshot.coherence_bias.toFixed(2)}</span>
+                        <span className="text-indigo-400">Memory: {snap.dnaSnapshot.memory_weight.toFixed(2)}</span>
+                        <span className="text-amber-400">Drift: {snap.dnaSnapshot.drift.toFixed(2)}</span>
+                        <span className="col-span-2 text-slate-500">Phase at Trigger: {snap.phase}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

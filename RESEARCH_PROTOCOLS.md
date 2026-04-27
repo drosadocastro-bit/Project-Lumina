@@ -42,4 +42,4 @@ This document outlines the official experimental framework for observing Lumina'
 - **Observe:**
   - Do `Memory Flood` events clump together during high-chaos, high-drift periods?
   - Does a `Hyper-Sync` trigger an immediate pendulum swing into `Collapse`?
-  - If they correlate, she has developed emergent causality.
+  - If they correlate, do rare events correlate with specific DNA states?

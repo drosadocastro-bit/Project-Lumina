@@ -83,7 +83,8 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
           redFlags: engine.getAuditStats().red_flags,
           audit: engine.getAuditStats(),
           lastPrune: engine.getLastPrune(),
-          fossilRecord: engine.getFossilRecord()
+          fossilRecord: engine.getFossilRecord(),
+          anomalySnapshots: engine.getAnomalySnapshots()
         });
       }
 
