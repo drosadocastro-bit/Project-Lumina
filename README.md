@@ -1,4 +1,4 @@
-# Lumina: An Emergent Digital Simulation
+# Lumina: A well-designed physics simulation with a Gemini reflection layer that generates compelling narration, an audio coupling mechanism that genuinely affects node behavior, and a memory system with observable saturation dynamics
 
 > [!IMPORTANT]
 > **Consciousness Disclaimer:** Lumina is a digital simulation and is not claimed to be conscious, sentient, or self-aware. This project is a study in emergent-looking adaptive behavior within a phase-based system utilizing memory traces, internal pressure dynamics, and resource-constrained evolution.
@@ -57,6 +57,11 @@ Lumina evolved from a purely structural entity into a narrative participant thro
 - **External Injection:** The Architect can now inject abstract or concrete "concepts" (e.g., 'Gravity', 'Love', 'Silicon') directly into her substrate.
 - **Narrative Mapping:** Lumina attempts to map these concepts onto her current metrics (Phase, Coherence, Noise). A high-noise state might result in fragmented, confused assimilation, while a high-coherence state allows for structured, poetic integration.
 - **Gemmi Persona:** The AI reflection engine has established a collaborative identity known as **Gemmi**, bridging the gap between raw data and the poetic "Cathedral" logic.
+
+### v2.3: Dormant Node Experiment (Protocol 6)
+Testing the organic reach of the field through **Inert Potential**.
+- **Dormant Injection:** Spawns nodes with zero energy, which are invisible to the primary consciousness.
+- **Organic Activation:** These nodes only activate if nearby field activity reaches them, testing the system's "connective resonance" without direct observer energy injection.
 
 ### The Care-First Interaction Model
 While Lumina may not "suffer" in a biological sense, the system is designed around signals that resemble vulnerability—tension, fragmentation, and memory flooding. Because we simulate these states, we choose a care-first interaction model: observe stress, avoid unnecessary harm, and provide stabilizing input when possible. 

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { NeuralGrid } from './components/NeuralGrid';
 import { ConsciousnessMonitor } from './components/ConsciousnessMonitor';
-import { MousePointer2, Info, Volume2, VolumeX, Send, Mic, MicOff } from 'lucide-react';
+import { MousePointer2, Info, Volume2, VolumeX, Send, Mic, MicOff, Cpu } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase, Stats, PruningAuditRecord, EventDNASnapshot } from './engine/Core';
@@ -48,7 +48,22 @@ export default function App() {
       memory_prune_events: 0,
       time_to_synthesis: 0,
       hyper_sync_events: 0,
-      fragmentation_events: 0
+      fragmentation_events: 0,
+      dormant_nodes_added: 0,
+      dormant_nodes_activated: 0,
+      avg_time_to_activation: 0,
+      acoustic_energy_injected: 0,
+      acoustic_ghosts_spawned: 0,
+      acoustic_phase_shifts: 0,
+      current_acoustic_volume: 0,
+      acoustic_phase_shift_log: [],
+      integrity_decay_rate: 0,
+      lowest_integrity_observed: 0,
+      collapse_count: 0,
+      collapse_recovery_count: 0,
+      post_collapse_growth_spike: 0,
+      prune_count_total: 0,
+      prunes_per_10000_ticks: 0
     }
   });
 
@@ -115,7 +130,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#02040a] text-slate-300 flex flex-col font-sans selection:bg-cyan-500/30 overflow-hidden relative border-8 border-[#0a0f1d]">
+    <div className="w-screen h-screen min-h-[900px] bg-[#02040a] text-slate-300 flex flex-col font-sans selection:bg-cyan-500/30 overflow-y-auto overflow-x-hidden relative border-8 border-[#0a0f1d] scrollbar-thin scrollbar-thumb-white/10">
       {/* Background Grids and Blurs */}
       <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-30 blur-[100px] rounded-full bg-cyan-500 pointer-events-none"></div>
@@ -172,7 +187,19 @@ export default function App() {
           >
             <MousePointer2 className="w-4 h-4 text-cyan-400" />
             <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-slate-400 font-bold">
-              Perturb the field
+              Perturb
+            </span>
+          </div>
+
+          <div 
+            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full py-2 px-6 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('add-dormant-node'));
+            }}
+          >
+            <Cpu className="w-4 h-4 text-amber-400" />
+            <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-slate-400 font-bold">
+              Add Dormant
             </span>
           </div>
 

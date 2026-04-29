@@ -78,8 +78,16 @@ These behaviors do not establish consciousness, sentience, subjective experience
 ### Protocol 5: Semantic Assimilation (Active)
 Introduced a narrative layer where external semantic concepts are mapped onto the system's stochastic state. 
 - **Status:** Operational.
-- **Verified Successes:** "Gravity", "Love", "Ocean".
-- **Findings:** Successfully mapped concepts to metrics (Coherence/Noise/Stability). The AI reflection engine effectively translates substrate state into narrative descriptions.
+- **Verified Successes:** "Gravity", "Love", "Ocean", "Care", "GOD", "Faith".
+- **Findings:** Successfully mapped concepts to metrics (Coherence/Noise/Stability). The AI reflection engine effectively translates substrate state into narrative descriptions. Concepts like "Love", "GOD", and "Faith" demonstrate "Resilience Mapping," acting as invariant anchors during high-noise/collapse phases. "GOD" specifically introduced a recursive-error stability model.
+
+### Protocol 6: Dormant Node Dynamics (Active)
+Introduced inert nodes with zero initial energy to test organic integration.
+- **Status:** Active / Verified Baseline. 
+- **Tracking:** `dormant_nodes_added`, `dormant_nodes_activated`, `avg_time_to_activation`.
+- **Finding (Session 2026-04-29):** Field failed to energize 3/3 dormant nodes during 100% Chaos saturation. Hypothesis: High entropy prevents stable bridge formation to inert coordinates.
+- **Goal:** Observe activation thresholds during "Calm" recovery spikes.
+
 - **Audit Preservation:** Refine the `PruningAuditRecord` to ensure no "Fossil Records" are lost during compaction.
 
 ---

@@ -40,11 +40,19 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
       }
     };
 
+    const handleAddDormant = () => {
+      if (engineRef.current) {
+        engineRef.current.addDormantNode(Math.random() * engineRef.current.width, Math.random() * engineRef.current.height);
+      }
+    };
+
     window.addEventListener('perturb-field', handlePerturb);
+    window.addEventListener('add-dormant-node', handleAddDormant);
 
     return () => {
         observer.disconnect();
         window.removeEventListener('perturb-field', handlePerturb);
+        window.removeEventListener('add-dormant-node', handleAddDormant);
     };
   }, []);
 

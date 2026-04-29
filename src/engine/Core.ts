@@ -137,6 +137,9 @@ export interface Stats {
     acoustic_phase_shifts: number;
     current_acoustic_volume: number;
     acoustic_phase_shift_log: AcousticPhaseShiftRecord[];
+    dormant_nodes_added: number;
+    dormant_nodes_activated: number;
+    avg_time_to_activation: number;
   };
   lastPrune?: PruningAuditRecord;
   fossilRecord: PruningAuditRecord[];
@@ -192,6 +195,11 @@ export class NeuralEngine {
   private currentAcousticVolume: number = 0;
   private acousticPhaseShiftLog: AcousticPhaseShiftRecord[] = [];
   private anomalySnapshots: EventDNASnapshot[] = [];
+
+  private dormantNodesAdded: number = 0;
+  private dormantNodesActivated: number = 0;
+  private totalActivationTicks: number = 0;
+  private dormantNodeStartTime: Map<string, number> = new Map();
 
   private lowestIntegrityObserved: number = 0.95;
   private collapseCount: number = 0;
@@ -432,11 +440,24 @@ export class NeuralEngine {
 
     // Update nodes
     this.nodes.forEach(node => {
+      const isDormant = node.id.startsWith('node_dormant_');
+      const wasDormant = this.dormantNodeStartTime.has(node.id);
+
       // Natural oscillation
       node.pulseRef = Math.sin(time * node.frequency + node.phase);
       
       // Decay activity
+      const energyBefore = node.energy;
       node.energy *= 0.95;
+
+      // Activation Logic for Dormant Nodes
+      if (wasDormant && node.energy > 0.1 && energyBefore <= 0.1) {
+        this.dormantNodesActivated++;
+        const startTime = this.dormantNodeStartTime.get(node.id)!;
+        this.totalActivationTicks += (this.totalTicks - startTime);
+        this.dormantNodeStartTime.delete(node.id); // No longer tracking activation time
+        this.events.push(`Dormant Node Activated: ${node.id}`);
+      }
 
       // MEMORY BIAS (Evolution Influenced): Sense nearby ghosts and pull phase/frequency towards them
       this.ghosts.forEach(ghost => {
@@ -690,6 +711,9 @@ export class NeuralEngine {
       acoustic_phase_shifts: this.acousticPhaseShifts,
       current_acoustic_volume: parseFloat(this.currentAcousticVolume.toFixed(3)),
       acoustic_phase_shift_log: this.acousticPhaseShiftLog,
+      dormant_nodes_added: this.dormantNodesAdded,
+      dormant_nodes_activated: this.dormantNodesActivated,
+      avg_time_to_activation: this.dormantNodesActivated > 0 ? parseFloat((this.totalActivationTicks / this.dormantNodesActivated).toFixed(2)) : 0,
       red_flags: this.redFlags
     };
   }
@@ -875,6 +899,25 @@ export class NeuralEngine {
     // Aggressive Perturbation (Observer Influence Test)
     this.tension = Math.min(1.0, this.tension + 0.3);
     this.dna.noise_level = Math.min(1.0, this.dna.noise_level + 0.1);
+    
+    return id;
+  }
+
+  addDormantNode(x: number, y: number) {
+    const id = `node_dormant_${Date.now()}`;
+    this.nodes.push({
+      id,
+      x,
+      y,
+      energy: 0.0,
+      pulseRef: 0.0,
+      phase: Math.random() * Math.PI * 2,
+      frequency: 1.0 + Math.random(),
+      lastPulse: 0,
+    });
+    
+    this.dormantNodesAdded++;
+    this.dormantNodeStartTime.set(id, this.totalTicks);
     
     return id;
   }

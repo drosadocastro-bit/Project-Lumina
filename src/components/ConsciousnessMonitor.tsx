@@ -215,7 +215,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       </aside>
 
       {/* Right Sidebar: Manifestation */}
-      <aside className="absolute right-8 top-24 bottom-24 flex flex-col gap-4 z-20 w-80 text-right pointer-events-none overflow-y-auto scrollbar-none pb-8 pt-4 mask-image-fade">
+      <aside className="absolute right-8 top-24 bottom-24 flex flex-col gap-4 z-20 w-80 text-right pointer-events-auto overflow-y-auto pt-4 mask-image-fade scrollbar-thin scrollbar-thumb-cyan-500/20 hover:scrollbar-thumb-cyan-500/40 scrollbar-track-transparent pr-2">
         <AnimatePresence mode="wait">
           <motion.div
             key={reflection}
@@ -387,6 +387,18 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
                 <AuditMini label="Decay/10k" value={`${stats.audit.integrity_decay_rate}`} color="text-red-400" />
                 <AuditMini label="Prunes/10k" value={`${stats.audit.prunes_per_10000_ticks}`} color="text-amber-400" />
                 <AuditMini label="Peak Traces" value={stats.audit.ghosttrace_peak} color={stats.audit.ghosttrace_peak > 650 ? "text-amber-400" : "text-indigo-400"} />
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                <p className="text-[9px] font-mono text-amber-400/60 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <Fingerprint className="w-3 h-3" /> Protocol 6: Dormant Analysis
+                </p>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <AuditMini label="Dormant Spawned" value={stats.audit.dormant_nodes_added} color="text-slate-500" />
+                  <AuditMini label="Dormant Active" value={stats.audit.dormant_nodes_activated} color="text-amber-400" />
+                  <AuditMini label="Avg Act. Ticks" value={stats.audit.avg_time_to_activation} color="text-cyan-400" />
+                  <AuditMini label="Act. Rate" value={stats.audit.dormant_nodes_added > 0 ? `${((stats.audit.dormant_nodes_activated / stats.audit.dormant_nodes_added) * 100).toFixed(1)}%` : '0%'} color="text-indigo-400" />
+                </div>
               </div>
 
               <div className="space-y-1.5 bg-black/20 p-2 rounded border border-white/5 mb-2">
