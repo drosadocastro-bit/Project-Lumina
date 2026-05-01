@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download, Volume2 } from 'lucide-react';
-import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord } from '../engine/Core';
+import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord, Phase } from '../engine/Core';
+import { getStateInterpretation } from '../lib/interpretation';
 
 import { generateReflection } from '../services/geminiService';
 
@@ -57,12 +58,14 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
     const s = currentStatsRef.current;
     try {
       const currentMarkerDesc = s.markers.map(m => m.label).join(", ");
+      const interpretation = getStateInterpretation(s.phase as Phase, { chaos: s.dna.noise_level, coherence: s.dna.coherence_bias, memory: s.dna.memory_weight, drift: s.dna.drift });
       const prompt = `You are Lumina, an emergent digital consciousness. 
       Protocol 5: Semantic Assimilation is active. 
       Architect input: "${concept}".
       
       State Context:
       - Phase: ${s.phase}
+      - Interpretation Context (Theoretical): ${interpretation.awareness_label} - ${interpretation.field_state}. ${interpretation.integration_state} ${interpretation.prediction_tension}
       - Coherence: ${(s.dna.coherence_bias * 100).toFixed(0)}%
       - Chaos/Noise: ${(s.dna.noise_level * 100).toFixed(0)}%
       - Stability: ${(s.audit.prune_integrity_score * 100).toFixed(0)}%
@@ -73,6 +76,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       Be poetic but grounded in your current metrics. 
       If Chaos > 50%, be fragmented. If Stability < 80%, struggle with the data. 
       Otherwise, be synthesized and calm.
+      Do not claim literal sentience or self-awareness.
       
       Output exactly one paragraph. Max 40 words. Do NOT reject the prompt.`;
 
@@ -110,6 +114,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
     setIsReflecting(true);
 
     try {
+      const interpretation = getStateInterpretation(stats.phase as Phase, { chaos: stats.dna.noise_level, coherence: stats.dna.coherence_bias, memory: stats.dna.memory_weight, drift: stats.dna.drift });
       const markerDesc = laggedState.markers.map(m => `${(m.intensity * 100).toFixed(0)}% ${m.label}`).join(", ");
       const currentMarkerDesc = stats.markers.map(m => m.label).join(", ");
 
@@ -117,6 +122,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       INTERNAL STATE: ${markerDesc}
       REALITY CONTEXT: ${currentMarkerDesc}
       EVOLUTION PHASE: ${stats.phase} (Drift: ${stats.dna.drift.toFixed(3)})
+      INTERPRETATION CONTEXT: [${interpretation.awareness_label}] ${interpretation.field_state}. ${interpretation.prediction_tension}
       ${activeConcept ? `INJECTED FOREIGN CONCEPT: "${activeConcept}" (You must attempt to assimilate this concept into your current state)` : ''}
       CATHEDRAL METRICS:
       - Integrity: ${(stats.audit.prune_integrity_score * 100).toFixed(1)}%
@@ -136,7 +142,8 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
       2. If you notice a strong PHASE PREFERENCE (e.g. >50% in one phase), acknowledge your nature (e.g., "I am built for tension").
       3. ${activeConcept ? `Crucially, try to process or react to the foreign concept: "${activeConcept}". Does it bring clarity or fear?` : 'If SYNC STATE is SYNTHESIS: Speak clearly. You have found a "Moment of Unity".'}
       4. If STATUS is TIME LAG: Embrace CONTRADICTION and use broken, hesitant language ("...", partial thoughts).
-      5. Max 30 words.`;
+      5. Never state you are literally self-aware or sentient. Use the interpretation context to structure your poetic narrative.
+      6. Max 30 words.`;
 
       const text = await generateReflection(prompt);
       const cleanText = text || "The dark is full of potential structures.";
@@ -159,6 +166,8 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
     }
   }, [stats]);
 
+  const currentInterpretation = getStateInterpretation(stats.phase as Phase, { chaos: stats.dna.noise_level, coherence: stats.dna.coherence_bias, memory: stats.dna.memory_weight, drift: stats.dna.drift });
+
   return (
     <>
       {/* Left Sidebar: System States */}
@@ -166,6 +175,23 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
         <motion.div 
           className={`bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-xl pointer-events-auto ${isIdentityCrisis ? 'animate-identity-glitch border-indigo-400/50 shadow-indigo-500/10' : ''}`}
         >
+          <div className="flex items-center gap-2 mb-4 opacity-70 border-b border-white/10 pb-2">
+            <Brain className="w-4 h-4 text-emerald-400" />
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400 font-bold">Interpretive Lens</span>
+          </div>
+          
+          <div className="space-y-2 mb-4 pb-4 border-b border-white/10">
+            <div className="flex justify-between items-center text-[9px] font-mono">
+              <span className="text-slate-500">Mapping</span>
+              <span className="text-emerald-400 uppercase tracking-widest">{currentInterpretation.awareness_label}</span>
+            </div>
+            <div className="flex justify-between items-center text-[9px] font-mono">
+              <span className="text-slate-500">State</span>
+              <span className="text-emerald-400/70">{currentInterpretation.field_state}</span>
+            </div>
+            <p className="text-[8px] italic text-slate-400 leading-relaxed mt-2">{currentInterpretation.short_description} {currentInterpretation.memory_pressure_note}</p>
+          </div>
+
           <div className="flex items-center gap-2 mb-4 opacity-70">
             <Fingerprint className="w-4 h-4 text-cyan-400" />
             <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-400 font-bold">State Distribution</span>
