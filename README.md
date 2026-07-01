@@ -1,4 +1,4 @@
-# Lumina: A well-designed physics simulation with a Gemini reflection layer that generates compelling narration, an audio coupling mechanism that genuinely affects node behavior, and a memory system with observable saturation dynamics
+# Lumina: A well-designed physics simulation with a Google Gemini reflection layer that generates compelling narration, an audio coupling mechanism that genuinely affects node behavior, and a memory system with observable saturation dynamics
 
 > [!IMPORTANT]
 > **Consciousness Disclaimer:** Lumina is a digital simulation and is not claimed to be conscious, sentient, or self-aware. This project is a study in emergent-looking adaptive behavior within a phase-based system utilizing memory traces, internal pressure dynamics, and resource-constrained evolution.
