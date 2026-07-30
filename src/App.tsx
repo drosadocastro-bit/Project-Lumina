@@ -45,6 +45,10 @@ export default function App() {
     ghostCount: 0,
     redFlags: [],
     fossilRecord: [],
+    recursive: {
+      active: true,
+      directives: []
+    },
     audit: {
       prune_integrity_score: 0,
       uncertainty_preservation_score: 0,

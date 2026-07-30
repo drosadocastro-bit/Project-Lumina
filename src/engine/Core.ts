@@ -143,6 +143,17 @@ export interface Stats {
   };
   lastPrune?: PruningAuditRecord;
   fossilRecord: PruningAuditRecord[];
+  recursive: {
+    active: boolean;
+    directives: {
+      id: string;
+      label: string;
+      explanation: string;
+      timestamp: number;
+      adjustments: Record<string, number>;
+      type: 'local' | 'gemini';
+    }[];
+  };
 }
 
 export class NeuralEngine {
@@ -208,6 +219,17 @@ export class NeuralEngine {
   private lastAuditRecord: PruningAuditRecord | undefined;
   private fossilRecord: PruningAuditRecord[] = [];
   private redFlags: string[] = [];
+
+  // Self-Recursive Learning State
+  private recursiveLearningActive: boolean = true;
+  private recursiveDirectives: {
+    id: string;
+    label: string;
+    explanation: string;
+    timestamp: number;
+    adjustments: Record<string, number>;
+    type: 'local' | 'gemini';
+  }[] = [];
   
   private auditMetrics = {
     integrity: 0.95,
@@ -420,6 +442,11 @@ export class NeuralEngine {
     // --- EVOLUTION MACRO-LOOP ---
     if (this.tickCount % 60 === 0) {
       this.evolveSystem();
+    }
+
+    // --- RECURSIVE SELF-LEARNING STEP ---
+    if (this.recursiveLearningActive && this.tickCount % 360 === 0) {
+      this.runLocalRecursiveStep();
     }
 
     // Memory Decay: Ghosts fade slowly. Modulated by recovery_rate
@@ -920,5 +947,87 @@ export class NeuralEngine {
     this.dormantNodeStartTime.set(id, this.totalTicks);
     
     return id;
+  }
+
+  // === RECURSIVE LEARNING METHODS ===
+  public getRecursiveState() {
+    return {
+      active: this.recursiveLearningActive,
+      directives: this.recursiveDirectives,
+    };
+  }
+
+  public toggleRecursiveLearning(active: boolean) {
+    this.recursiveLearningActive = active;
+    this.events.push(`Recursive Learning: ${active ? 'ENABLED' : 'DISABLED'}`);
+  }
+
+  public applyRecursiveAdjustment(label: string, explanation: string, adjustments: Record<string, number>, type: 'local' | 'gemini' = 'local') {
+    Object.entries(adjustments).forEach(([param, value]) => {
+      const p = param as keyof SystemDNA;
+      if (this.dna[p] !== undefined) {
+        this.dna[p] = Math.max(0, Math.min(1, this.dna[p] + value));
+      }
+    });
+
+    this.recursiveDirectives.unshift({
+      id: `dir_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      label,
+      explanation,
+      timestamp: Date.now(),
+      adjustments,
+      type
+    });
+
+    if (this.recursiveDirectives.length > 30) {
+      this.recursiveDirectives.pop();
+    }
+
+    this.events.push(`[RECURSION] ${label}`);
+  }
+
+  private runLocalRecursiveStep() {
+    let label = "";
+    let explanation = "";
+    const adjustments: Record<string, number> = {
+      coherence_bias: 0,
+      noise_level: 0,
+      memory_weight: 0,
+      recovery_rate: 0,
+      drift: 0,
+    };
+
+    if (this.tension > 0.65) {
+      label = "TENSION DAMPENING RESISTOR";
+      explanation = "Recursive telemetry detects high structural tension. Biasing coherence paths and accelerating recovery to resist synaptic fatigue.";
+      adjustments.coherence_bias = 0.05;
+      adjustments.recovery_rate = 0.06;
+      adjustments.noise_level = -0.04;
+    } else if (this.phase === 'Collapse') {
+      label = "COLLAPSE DISSOLUTION VALVE";
+      explanation = "Observing self-state collapse. Minimizing synaptic noise bias to protect active anchors and prevent cascading neural memory loss.";
+      adjustments.noise_level = -0.08;
+      adjustments.coherence_bias = -0.02;
+      adjustments.recovery_rate = 0.08;
+    } else if (this.phase === 'Growth' && this.dna.coherence_bias < 0.4) {
+      label = "COHERENCE REALIGNMENT FORCE";
+      explanation = "System is in growth phase but lacks binding strength. Biasing coherence and memory weight to secure emergent cluster bridges.";
+      adjustments.coherence_bias = 0.07;
+      adjustments.memory_weight = 0.04;
+    } else if (this.dna.coherence_bias > 0.85 && this.dna.noise_level < 0.15) {
+      label = "STAGNATION STOCHASTIC INJECTOR";
+      explanation = "High coherence and low noise detected. Injecting mutance/drift and high-frequency noise to maintain neural adaptability.";
+      adjustments.noise_level = 0.05;
+      adjustments.drift = 0.03;
+      adjustments.coherence_bias = -0.03;
+    } else {
+      label = "RECURSIVE DRIFT EQUALIZER";
+      explanation = "Neural grid is operating within nominal parameters. Applying minor adaptive calibration of system DNA values.";
+      adjustments.coherence_bias = (Math.random() - 0.5) * 0.02;
+      adjustments.noise_level = (Math.random() - 0.5) * 0.01;
+      adjustments.drift = (Math.random() - 0.5) * 0.01;
+    }
+
+    this.applyRecursiveAdjustment(label, explanation, adjustments, 'local');
   }
 }

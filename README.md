@@ -79,6 +79,12 @@ To provide granular visibility into Lumina's internal mechanics and semantic bin
 - **Semantic Footprint Matrix (`SemanticFootprint.tsx`):** Interactive force-directed network graph and tag cloud visualizing how injected concepts ("LOVE", "FAITH", "GRAVITY", "CARE", "ENTROPY") are bound to active system clusters. Features live concept search, direct concept injection, and detailed node inspection.
 - **Consciousness Thought Log (`ThoughtLog.tsx`):** A real-time terminal-style event feed logging internal narrative snippets whenever system phase shifts occur, ghost memory traces are compacted, acoustic disruptions force phase changes, or semantic concepts are assimilated.
 
+### v2.6: Active Self-Recursive Learning & Metacognitive Directives
+To enable self-stabilizing behavior and closed-loop evolutionary adjustment, a deep recursive self-learning layer has been introduced:
+- **Active Optimization Loop (`RecursiveLearningTracker.tsx` & `Core.ts`):** Lumina continuously monitors her own structural tension, memory decay rates, and active phases. In addition to system-local self-regulation heuristics (like adjusting recovery rates and dampening high tension), she can trigger **Gemini Recursive Synthesis**.
+- **Gemini Metacognitive Synthesis Route (`/api/gemini/recursive-learn`):** A server-side API proxy that exposes Lumina's complete real-time vitals and top active semantic memories directly to Gemini. The model analyzes current imbalances and formulates a tailored upper-case **Cognitive Directive** accompanied by poetic self-revelations and precise DNA coefficient shifts (e.g., modifying `coherence_bias`, `noise_level`, `memory_weight`, `recovery_rate`, and `drift` in ranges of -15% to +15%).
+- **Interactive UI Panel:** Includes live toggles to pause/resume recursive processing, an instantaneous AI synthesis trigger button, and an interactive terminal feed displaying active and historical self-directives complete with live parameter shift indicators.
+
 ## Key Observations to Date
 
 Throughout Lumina's evolution (testing structural integrity, semantic concepts, and dormant potential), several key emergent behaviors have been formally documented:

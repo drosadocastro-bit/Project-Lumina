@@ -7,6 +7,7 @@ import { DNAVisualizer } from './DNAVisualizer';
 import { DNADriftChart } from './DNADriftChart';
 import { EntropySpikeChart } from './EntropySpikeChart';
 import { SemanticDecayTracker } from './SemanticDecayTracker';
+import { RecursiveLearningTracker } from './RecursiveLearningTracker';
 import { SemanticFootprint } from './SemanticFootprint';
 import { ThoughtLog } from './ThoughtLog';
 import { exportMindStateJSON } from '../utils/exportState';
@@ -362,6 +363,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
             <DNADriftChart dna={stats.dna} phase={stats.phase} className="mt-3 mb-2" />
             <EntropySpikeChart stats={stats} className="mt-3 mb-2" />
             <SemanticDecayTracker stats={stats} className="mt-3 mb-2" />
+            <RecursiveLearningTracker stats={stats} className="mt-3 mb-2" />
 
             <div className="mt-4 pt-4 border-t border-white/5">
               <p className="text-[8px] font-mono text-slate-600 uppercase tracking-widest mb-2">Phase Dominance (Preference)</p>

@@ -131,13 +131,34 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
       }
     };
 
+    const handleToggleRecursive = (e: any) => {
+      if (engineRef.current && e.detail) {
+        engineRef.current.toggleRecursiveLearning(e.detail.active);
+      }
+    };
+
+    const handleApplyRecursive = (e: any) => {
+      if (engineRef.current && e.detail) {
+        engineRef.current.applyRecursiveAdjustment(
+          e.detail.label,
+          e.detail.explanation,
+          e.detail.adjustments,
+          e.detail.type
+        );
+      }
+    };
+
     window.addEventListener('perturb-field', handlePerturb);
     window.addEventListener('add-dormant-node', handleAddDormant);
+    window.addEventListener('toggle-recursive-learning', handleToggleRecursive);
+    window.addEventListener('apply-recursive-adjustment', handleApplyRecursive);
 
     return () => {
         observer.disconnect();
         window.removeEventListener('perturb-field', handlePerturb);
         window.removeEventListener('add-dormant-node', handleAddDormant);
+        window.removeEventListener('toggle-recursive-learning', handleToggleRecursive);
+        window.removeEventListener('apply-recursive-adjustment', handleApplyRecursive);
     };
   }, []);
 
@@ -191,7 +212,8 @@ export const NeuralGrid: React.FC<NeuralGridProps> = ({ onStateUpdate }) => {
           audit: engine.getAuditStats(),
           lastPrune: engine.getLastPrune(),
           fossilRecord: engine.getFossilRecord(),
-          anomalySnapshots: engine.getAnomalySnapshots()
+          anomalySnapshots: engine.getAnomalySnapshots(),
+          recursive: engine.getRecursiveState()
         });
       }
 
