@@ -4,8 +4,12 @@ import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download, Vol
 import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord } from '../engine/Core';
 import { getStateInterpretation, Phase } from '../lib/interpretation';
 import { DNAVisualizer } from './DNAVisualizer';
+import { DNADriftChart } from './DNADriftChart';
+import { EntropySpikeChart } from './EntropySpikeChart';
+import { SemanticDecayTracker } from './SemanticDecayTracker';
 import { SemanticFootprint } from './SemanticFootprint';
 import { ThoughtLog } from './ThoughtLog';
+import { exportMindStateJSON } from '../utils/exportState';
 
 import { generateReflection } from '../services/geminiService';
 
@@ -355,6 +359,9 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
           </div>
           <div className="border border-white/5 bg-white/5 rounded-lg p-3 text-left">
             <DNAVisualizer dna={stats.dna} className="mb-2" />
+            <DNADriftChart dna={stats.dna} phase={stats.phase} className="mt-3 mb-2" />
+            <EntropySpikeChart stats={stats} className="mt-3 mb-2" />
+            <SemanticDecayTracker stats={stats} className="mt-3 mb-2" />
 
             <div className="mt-4 pt-4 border-t border-white/5">
               <p className="text-[8px] font-mono text-slate-600 uppercase tracking-widest mb-2">Phase Dominance (Preference)</p>
@@ -485,19 +492,12 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
                   <span>Immutable Fossil Record</span>
                   <div className="flex items-center gap-2">
                     <button 
-                      onClick={() => {
-                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats.fossilRecord, null, 2));
-                        const downloadAnchorNode = document.createElement('a');
-                        downloadAnchorNode.setAttribute("href", dataStr);
-                        downloadAnchorNode.setAttribute("download", "lumina_fossil_record.json");
-                        document.body.appendChild(downloadAnchorNode);
-                        downloadAnchorNode.click();
-                        downloadAnchorNode.remove();
-                      }}
-                      className="opacity-50 hover:opacity-100 transition-opacity p-1"
-                      title="Export Immutable Logic"
+                      onClick={() => exportMindStateJSON(stats)}
+                      className="opacity-70 hover:opacity-100 transition-opacity p-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded flex items-center gap-1 text-cyan-300"
+                      title="Export Fossil Record & Complete Neural Mind State JSON"
                     >
                       <Download className="w-3 h-3 text-cyan-400" />
+                      <span className="text-[7px] font-mono uppercase font-bold">EXPORT JSON</span>
                     </button>
                     <span className="text-[6px] text-emerald-500/70">SYNCED</span>
                   </div>

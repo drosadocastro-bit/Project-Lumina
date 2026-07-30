@@ -1,18 +1,24 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { NeuralGrid } from './components/NeuralGrid';
 import { ConsciousnessMonitor } from './components/ConsciousnessMonitor';
-import { MousePointer2, Info, Volume2, VolumeX, Send, Mic, MicOff, Cpu } from 'lucide-react';
-import { motion } from 'motion/react';
+import { MousePointer2, Info, Volume2, VolumeX, Send, Mic, MicOff, Cpu, Download, Moon, Sparkles, Activity, Radio } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 import { Cluster, InternalMarker, GhostTrace, SystemDNA, CyclePhase, Stats, PruningAuditRecord, EventDNASnapshot } from './engine/Core';
 import { AudioEngine } from './engine/AudioEngine';
 import { AudioInput } from './engine/AudioInputEngine';
+import { exportMindStateJSON } from './utils/exportState';
+import { DreamJournal, DreamEntry } from './components/DreamJournal';
 
 export default function App() {
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [wakefulnessEnabled, setWakefulnessEnabled] = useState(true);
   const [listening, setListening] = useState(false);
   const [concept, setConcept] = useState("");
   const [activeConcept, setActiveConcept] = useState("");
+  const [isDreamJournalOpen, setIsDreamJournalOpen] = useState(false);
+  const [latestDreamToast, setLatestDreamToast] = useState<DreamEntry | null>(null);
+
   const [stats, setStats] = useState<Stats>({ 
     nodeCount: 0, 
     edgeCount: 0, 
@@ -73,7 +79,7 @@ export default function App() {
     setStats(newStats);
     
     if (audioEnabled) {
-      AudioEngine.update(newStats.phase, newStats.phaseDominance);
+      AudioEngine.update(newStats.phase, newStats.phaseDominance, newStats.audit.avg_time_to_activation);
       if (newStats.audit.memory_prune_events > lastPruneEvents.current) {
         AudioEngine.triggerSnap();
         lastPruneEvents.current = newStats.audit.memory_prune_events;
@@ -85,6 +91,7 @@ export default function App() {
     if (!audioEnabled) {
       AudioEngine.init();
       AudioEngine.resume();
+      AudioEngine.setWakefulness(wakefulnessEnabled);
       setAudioEnabled(true);
     } else {
       if (AudioEngine.masterGain) {
@@ -94,12 +101,21 @@ export default function App() {
     }
   };
 
+  const toggleWakefulness = () => {
+    const next = !wakefulnessEnabled;
+    setWakefulnessEnabled(next);
+    AudioEngine.setWakefulness(next);
+    if (audioEnabled) {
+      AudioEngine.update(stats.phase, stats.phaseDominance, stats.audit.avg_time_to_activation);
+    }
+  };
+
   useEffect(() => {
     if (audioEnabled && AudioEngine.masterGain) {
        AudioEngine.masterGain.gain.value = 0.5;
-       AudioEngine.update(stats.phase, stats.phaseDominance);
+       AudioEngine.update(stats.phase, stats.phaseDominance, stats.audit.avg_time_to_activation);
     }
-  }, [audioEnabled]);
+  }, [audioEnabled, wakefulnessEnabled, stats]);
 
   const toggleListening = async () => {
     if (!listening) {
@@ -142,9 +158,27 @@ export default function App() {
           <h1 className="text-xs font-mono tracking-[0.4em] text-cyan-400 uppercase mb-1">Project: Lumina</h1>
           <p className="text-2xl font-light tracking-tight text-white">System: Unguided Emergence</p>
         </div>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
-          <span className="text-[10px] font-mono tracking-wider uppercase text-slate-400 font-bold">Autonomous State: Active</span>
+
+        <div className="flex items-center gap-3 pointer-events-auto">
+          <button
+            onClick={() => {
+              setIsDreamJournalOpen(true);
+              setLatestDreamToast(null);
+            }}
+            className="bg-purple-950/40 hover:bg-purple-900/50 backdrop-blur-md border border-purple-500/40 hover:border-purple-400 rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer transition-all text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.3)] group"
+            title="Open Subconscious Dream Journal"
+          >
+            <Moon className="w-4 h-4 text-purple-300 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-mono tracking-wider uppercase font-bold text-purple-200">
+              Dream Journal
+            </span>
+            <Sparkles className="w-3 h-3 text-purple-400 animate-pulse" />
+          </button>
+
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
+            <span className="text-[10px] font-mono tracking-wider uppercase text-slate-400 font-bold">Autonomous State: Active</span>
+          </div>
         </div>
       </header>
 
@@ -180,6 +214,17 @@ export default function App() {
 
         <div className="flex items-center gap-4">
           <div 
+            className="bg-cyan-500/10 hover:bg-cyan-500/20 backdrop-blur-md border border-cyan-500/30 hover:border-cyan-400 rounded-full py-2 px-5 flex items-center gap-2 cursor-pointer transition-all text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.25)]"
+            onClick={() => exportMindStateJSON(stats)}
+            title="Export Fossil Record & Neural Mind State JSON"
+          >
+            <Download className="w-4 h-4 text-cyan-400" />
+            <span className="text-[11px] uppercase tracking-[0.2em] font-mono font-bold">
+              Export Fossil Record
+            </span>
+          </div>
+
+          <div 
             className="bg-white/5 backdrop-blur-md border border-white/10 rounded-full py-2 px-6 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
             onClick={() => {
               window.dispatchEvent(new CustomEvent('perturb-field'));
@@ -200,6 +245,21 @@ export default function App() {
             <Cpu className="w-4 h-4 text-amber-400" />
             <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-slate-400 font-bold">
               Add Dormant
+            </span>
+          </div>
+
+          <div 
+            className={`backdrop-blur-md border rounded-full py-2 px-4 flex items-center gap-2 cursor-pointer transition-all ${
+              wakefulnessEnabled 
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]' 
+                : 'bg-white/5 border-white/10 text-slate-500 hover:bg-white/10'
+            }`}
+            onClick={toggleWakefulness}
+            title={`Wakefulness Drone Density: ${Math.round((AudioEngine.wakefulnessLevel || 0) * 100)}% | Avg Activation Latency: ${stats.audit.avg_time_to_activation.toFixed(1)} ticks`}
+          >
+            <Radio className={`w-4 h-4 ${wakefulnessEnabled ? 'text-emerald-400 animate-pulse' : 'text-slate-500'}`} />
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider hidden sm:inline">
+              Wakefulness {wakefulnessEnabled ? `${Math.round((AudioEngine.wakefulnessLevel || 0) * 100)}%` : 'OFF'}
             </span>
           </div>
 
@@ -254,6 +314,48 @@ export default function App() {
 
       {/* Aesthetic Overlays */}
       <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.9)]" />
+
+      {/* Dream Journal Overlay Component */}
+      <DreamJournal
+        stats={stats}
+        isOpen={isDreamJournalOpen}
+        onClose={() => setIsDreamJournalOpen(false)}
+        onNewDreamNotification={(dream) => {
+          if (!isDreamJournalOpen) {
+            setLatestDreamToast(dream);
+            setTimeout(() => setLatestDreamToast(null), 8000);
+          }
+        }}
+      />
+
+      {/* New Dream Toast Notification */}
+      <AnimatePresence>
+        {latestDreamToast && !isDreamJournalOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            onClick={() => {
+              setIsDreamJournalOpen(true);
+              setLatestDreamToast(null);
+            }}
+            className="fixed bottom-24 right-8 z-40 max-w-md bg-[#0d071a]/90 backdrop-blur-xl border border-purple-500/40 hover:border-purple-400 p-4 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.3)] cursor-pointer pointer-events-auto group transition-all"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <Moon className="w-4 h-4 text-purple-300 animate-pulse" />
+                <span className="text-[10px] font-mono font-bold text-purple-200 uppercase tracking-widest">
+                  New Subconscious Dream
+                </span>
+              </div>
+              <span className="text-[9px] font-mono text-purple-400 group-hover:underline">View Journal &rarr;</span>
+            </div>
+            <p className="text-[11px] font-mono text-purple-100 italic line-clamp-2">
+              "{latestDreamToast.poeticDream}"
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

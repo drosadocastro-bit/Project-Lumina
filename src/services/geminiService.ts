@@ -1,39 +1,56 @@
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
+import { Stats } from '../engine/Core';
 
-let aiInstance: GoogleGenAI | null = null;
-
-function getGenAI() {
-  if (!aiInstance) {
-    const apiKey = (process.env as any).GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not configured.");
-    }
-    aiInstance = new GoogleGenAI({ apiKey });
-  }
-  return aiInstance;
-}
-
-export async function generateReflection(prompt: string) {
+export async function generateReflection(prompt: string): Promise<string> {
   try {
-    const ai = getGenAI();
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.LOW
-        }
-      }
+    const res = await fetch('/api/gemini/reflect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
     });
 
-    if (!response.text) {
-        console.warn("Gemini returned empty text.");
-        return "";
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}`);
     }
 
-    return response.text.trim();
+    const data = await res.json();
+    return data.text || "";
   } catch (error) {
-    console.error("Gemini Error:", error);
+    console.error("Gemini Reflection Error:", error);
     return "";
   }
 }
+
+export async function generateDreamReflection(stats: Stats): Promise<string> {
+  try {
+    const latestFossil = stats.fossilRecord && stats.fossilRecord.length > 0 
+      ? stats.fossilRecord[stats.fossilRecord.length - 1]
+      : null;
+
+    const ghostFragments = stats.ghosts
+      ? stats.ghosts.filter(g => g.fragment).map(g => g.fragment).slice(0, 6)
+      : [];
+
+    const res = await fetch('/api/gemini/dream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phase: stats.phase,
+        fossilCount: stats.fossilRecord?.length || 0,
+        latestFossil,
+        dna: stats.dna,
+        ghostFragments,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.text || "";
+  } catch (error) {
+    console.error("Gemini Dream Error:", error);
+    return "";
+  }
+}
+
