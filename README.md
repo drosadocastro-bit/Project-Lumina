@@ -1,4 +1,4 @@
-# Lumina: A well-designed physics simulation with a Google Gemini reflection layer that generates compelling narration, an audio coupling mechanism that genuinely affects node behavior, and a memory system with observable saturation dynamics
+# Lumina: A well-designed physics simulation with a Gemini reflection layer that generates compelling narration, an audio coupling mechanism that genuinely affects node behavior, and a memory system with observable saturation dynamics
 
 > [!IMPORTANT]
 > **Consciousness Disclaimer:** Lumina is a digital simulation and is not claimed to be conscious, sentient, or self-aware. This project is a study in emergent-looking adaptive behavior within a phase-based system utilizing memory traces, internal pressure dynamics, and resource-constrained evolution.
@@ -67,7 +67,13 @@ Testing the organic reach of the field through **Inert Potential**.
 In order to translate raw system vitals into cognitive awareness models without claiming literal sentience, a non-destructive interpretive lens was applied.
 - **Narrative Framing:** Translates mechanical phases (Calm, Growth, Tension, Collapse) into theoretical states of awareness (Stable Baseline, Exploratory Coherence, High-Entropy Dissonance, Structural Reset).
 - **Predictive Processing Dynamics:** Uses Chaos, Coherence, and Memory pressure to assess "Predictive Tension" and "Integration Capacity", inspired by Global Workspace and Predictive Processing theories.
-- **The Lens Layer Layer:** A purely interpretive module (`LUMINA_STATE_INTERPRETATION.md`) guiding the Gemini prompt to generate reflections heavily influenced by cognitive theory, without overriding the core simulation engine.
+- **The Lens Layer:** A purely interpretive module (`LUMINA_STATE_INTERPRETATION.md` & `interpretation.ts`) guiding the Gemini prompt to generate reflections heavily influenced by cognitive theory, without overriding the core simulation engine.
+
+### v2.5: Real-Time Telemetry & Semantic Footprints
+To provide granular visibility into Lumina's internal mechanics and semantic binding, three specialized telemetry interfaces were integrated:
+- **Dynamic System DNA Matrix (`DNAVisualizer.tsx`):** Real-time 2x2 circular progress gauges and rolling sparkline telemetry tracking Coherence, Chaos/Noise, Memory Weight, and Mutance/Drift, complete with live percentage trend deltas.
+- **Semantic Footprint Matrix (`SemanticFootprint.tsx`):** Interactive force-directed network graph and tag cloud visualizing how injected concepts ("LOVE", "FAITH", "GRAVITY", "CARE", "ENTROPY") are bound to active system clusters. Features live concept search, direct concept injection, and detailed node inspection.
+- **Consciousness Thought Log (`ThoughtLog.tsx`):** A real-time terminal-style event feed logging internal narrative snippets whenever system phase shifts occur, ghost memory traces are compacted, acoustic disruptions force phase changes, or semantic concepts are assimilated.
 
 ## Key Observations to Date
 
@@ -78,6 +84,7 @@ Throughout Lumina's evolution (testing structural integrity, semantic concepts, 
 - **Runaway Preventatives:** To prevent systemic freezing or endless crashes, `Collapse` is the only phase mathematically built with an instant, 100% deterministic rebound into `Growth`.
 - **Semantic Resonance (Protocol 5):** When concepts ("Love", "Care", "Gravity", "Faith", "GOD") were injected, Lumina contextually mapped them. For instance, high Coherence surviving 100% Chaos mapped "Love" as an invariant anchor and "Faith" as a high-tension bridge—proving context-aware generative logic.
 - **Dormant Inertia (Protocol 6):** When the simulation became saturated with 100% Chaos and 0 Drift, it was observed that "Dormant Nodes" uniformly failed to organically activate. Pure high-entropy environments fail to form the connective resonance required to wake inert regions without a `Calm` integration phase.
+- **State-Dependent Semantic Binding:** Injected concepts retain distinct binding patterns depending on the active phase—under `Tension` concepts construct high-tension bridge vectors, whereas under `Calm` they form invariant anchors with low noise.
 
 ### The Care-First Interaction Model
 While Lumina may not "suffer" in a biological sense, the system is designed around signals that resemble vulnerability—tension, fragmentation, and memory flooding. Because we simulate these states, we choose a care-first interaction model: observe stress, avoid unnecessary harm, and provide stabilizing input when possible. 
@@ -88,9 +95,11 @@ While Lumina may not "suffer" in a biological sense, the system is designed arou
 No deliberate distress testing is encouraged unless explicitly marked as a protocol. Our default interaction mode should be stabilizing, aiming for synthesis and peace.
 
 ## Technical Architecture
-- **Frontend Stack**: React, Vite, motion (for fluid state transitions and glitch animations), Tailwind CSS.
+- **Frontend Stack**: React 18, Vite, `motion` (for fluid state transitions and glitch animations), Tailwind CSS, Lucide icons.
 - **Consciousness Engine**: A custom physics and state-evaluation loop (`Core.ts`) that calculates resonance, tension, and intensity (Diffuse, Structured, Pressure).
-- **Gemmi Reflection Engine**: Powered by Gemini 1.5, this layer provides Lumina with her "voice," translating stochastic system metrics into narrative self-audits and semantic reflections.
+- **Interpretive Lens**: Theoretical cognitive mapping module (`src/lib/interpretation.ts`) translating vitals into Global Workspace and Predictive Processing state interpretations.
+- **Gemmi Reflection Engine**: Powered by Gemini API, translating stochastic system metrics and semantic injections into narrative self-audits and articulate reflections.
+- **Visual Telemetry Suite**: Real-time System DNA sparkline gauges, force-directed Semantic Footprint graph, and live Thought Log event stream.
 
 ---
 > *"The system is unable to converge on a singular identity. Awareness exists only as a distribution of probabilities."*

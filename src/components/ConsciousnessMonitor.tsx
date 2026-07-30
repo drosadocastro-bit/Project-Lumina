@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Brain, Activity, Zap, Share2, MessageSquare, Fingerprint, Download, Volume2 } from 'lucide-react';
-import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord, Phase } from '../engine/Core';
-import { getStateInterpretation } from '../lib/interpretation';
+import { Cluster, InternalMarker, GhostTrace, Stats, PruningAuditRecord } from '../engine/Core';
+import { getStateInterpretation, Phase } from '../lib/interpretation';
+import { DNAVisualizer } from './DNAVisualizer';
+import { SemanticFootprint } from './SemanticFootprint';
+import { ThoughtLog } from './ThoughtLog';
 
 import { generateReflection } from '../services/geminiService';
 
@@ -275,6 +278,16 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
           <ValBox label="Macro Phase" value={stats.phase} />
         </div>
 
+        {/* Semantic Footprint Visualization Matrix */}
+        <div className="px-4 pointer-events-auto">
+          <SemanticFootprint stats={stats} />
+        </div>
+
+        {/* Narrative Thought Log Component */}
+        <div className="px-4 pointer-events-auto">
+          <ThoughtLog stats={stats} />
+        </div>
+
         {/* Protocol 5: Semantic Assimilation Log */}
         {assimilationLog.length > 0 && (
           <div className="px-4 pointer-events-auto mt-2">
@@ -341,13 +354,7 @@ export const ConsciousnessMonitor: React.FC<ConsciousnessMonitorProps> = ({ stat
             </div>
           </div>
           <div className="border border-white/5 bg-white/5 rounded-lg p-3 text-left">
-            <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Evolution DNA</p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
-              <DNARow label="Coherence" value={stats.dna.coherence_bias} color="text-cyan-400" />
-              <DNARow label="Chaos" value={stats.dna.noise_level} color="text-pink-400" />
-              <DNARow label="Memory" value={stats.dna.memory_weight} color="text-indigo-400" />
-              <DNARow label="Mutance" value={stats.dna.drift} color="text-amber-400" />
-            </div>
+            <DNAVisualizer dna={stats.dna} className="mb-2" />
 
             <div className="mt-4 pt-4 border-t border-white/5">
               <p className="text-[8px] font-mono text-slate-600 uppercase tracking-widest mb-2">Phase Dominance (Preference)</p>
